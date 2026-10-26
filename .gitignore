@@ -1,0 +1,7 @@
+output/
+*.img
+*.img.gz
+*.tar
+*.log
+buildroot-*/
+roms/
