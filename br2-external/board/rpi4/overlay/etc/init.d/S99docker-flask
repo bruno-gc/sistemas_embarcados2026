@@ -1,0 +1,46 @@
+#!/bin/sh
+# Sobe automaticamente o container da aplicação Flask no boot
+
+IMAGE="flask-tp8:1.0"
+CONTAINER="flask-tp8"
+TAR="/opt/docker/flask-tp8.tar"
+
+start() {
+    printf "Iniciando %s: " "$CONTAINER"
+
+    # garante o cgroup v2 montado (necessário para containers)
+    [ -f /sys/fs/cgroup/cgroup.controllers ] || mount -t cgroup2 none /sys/fs/cgroup
+
+    # garante o Docker Engine rodando
+    pidof dockerd >/dev/null || (dockerd >/var/log/dockerd.log 2>&1 &)
+
+    # espera o Docker responder (até 60 s)
+    i=0
+    until docker info >/dev/null 2>&1; do
+        i=$((i + 1))
+        [ "$i" -ge 60 ] && { echo "FALHOU (dockerd não respondeu)"; return 1; }
+        sleep 1
+    done
+
+    # carrega a imagem do cartão só se ela ainda não existir
+    if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+        docker load -i "$TAR" >/dev/null || { echo "FALHOU (docker load)"; return 1; }
+    fi
+
+    # recria o container publicando a porta 5000
+    docker rm -f "$CONTAINER" >/dev/null 2>&1
+    docker run -d --name "$CONTAINER" -p 5000:5000 --restart unless-stopped "$IMAGE" >/dev/null \
+        && echo "OK" || echo "FALHOU (docker run)"
+}
+
+stop() {
+    printf "Parando %s: " "$CONTAINER"
+    docker stop "$CONTAINER" >/dev/null 2>&1 && echo "OK" || echo "FALHOU"
+}
+
+case "$1" in
+    start) start ;;
+    stop) stop ;;
+    restart) stop; start ;;
+    *) echo "Uso: $0 {start|stop|restart}"; exit 1 ;;
+esac
