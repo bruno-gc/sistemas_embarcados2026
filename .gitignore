@@ -3,5 +3,5 @@ output/
 *.img.gz
 *.tar
 *.log
-buildroot-*/
+buildroot-2*/
 roms/
