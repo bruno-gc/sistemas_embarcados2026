@@ -1,1 +1,1 @@
-nino -1 nino -1 =Nino@467 /home/nino /bin/sh - Usuario TP8
+nino -1 nino -1 =CCS1234 /home/nino /bin/sh - Usuario TP8
