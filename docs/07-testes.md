@@ -25,9 +25,9 @@ docker rm -f teste
 
 | Verificação | Esperado | Obtido |
 | --- | --- | --- |
-| Arquitetura da imagem | `arm64` | PREENCHER |
-| Rota `/` | frase exata | PREENCHER |
-| Rota `/console` | HTTP 200 | PREENCHER |
+| Arquitetura da imagem | `arm64` | OK — arm64 |
+| Rota `/` | frase exata | OK |
+| Rota `/console` | HTTP 200 | OK |
 
 ## 2. Testes na Raspberry Pi 4
 
