@@ -41,6 +41,7 @@ docker run --privileged --rm tonistiigi/binfmt --install arm64
 ```
 
 Saída esperada do último comando: `installing: arm64 OK`.
+O registro do emulador não sobrevive à reinicialização da máquina de build: depois de reiniciar, rode o comando de novo, senão o container arm64 encerra logo ao iniciar na VM.
 
 ## 4. Repositório
 
