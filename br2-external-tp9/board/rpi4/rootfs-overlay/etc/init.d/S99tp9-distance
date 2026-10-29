@@ -1,0 +1,66 @@
+#!/bin/sh
+# S99tp9-distance - sobe o container da aplicacao com acesso so ao /dev/hcsr04.
+# Ultimo da cadeia: depende do driver (S30), do Wi-Fi AP (S40) e do Docker.
+
+IMAGE="tp9-distance:1.0"
+CONTAINER="tp9-distance"
+TAR="/opt/docker/tp9-distance.tar"
+DEV="/dev/hcsr04"
+
+start() {
+	printf "Iniciando %s: " "$CONTAINER"
+
+	# sem o dispositivo, o --device falharia; espera por ate 15 s
+	i=0
+	while [ ! -c "$DEV" ]; do
+		i=$((i + 1))
+		if [ "$i" -ge 15 ]; then
+			echo "FALHOU ($DEV nao existe; o S30hcsr04 rodou?)"
+			return 1
+		fi
+		sleep 1
+	done
+
+	# garante o cgroup v2 montado (necessario para containers)
+	[ -f /sys/fs/cgroup/cgroup.controllers ] || mount -t cgroup2 none /sys/fs/cgroup
+
+	# garante o Docker Engine rodando
+	pidof dockerd >/dev/null || (dockerd >/var/log/dockerd.log 2>&1 &)
+
+	# espera o Docker responder (condicao real), por ate 60 s
+	i=0
+	until docker info >/dev/null 2>&1; do
+		i=$((i + 1))
+		if [ "$i" -ge 60 ]; then
+			echo "FALHOU (dockerd nao respondeu)"
+			return 1
+		fi
+		sleep 1
+	done
+
+	# carrega a imagem do cartao so se ela ainda nao existir
+	if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+		docker load -i "$TAR" >/dev/null || { echo "FALHOU (docker load)"; return 1; }
+	fi
+
+	# recria o container: so o /dev/hcsr04, sem --privileged; porta 80 -> 5000
+	docker rm -f "$CONTAINER" >/dev/null 2>&1
+	docker run -d --name "$CONTAINER" \
+		--device="$DEV:$DEV" \
+		-p 80:5000 \
+		--restart unless-stopped \
+		"$IMAGE" >/dev/null \
+		&& echo "OK" || echo "FALHOU (docker run)"
+}
+
+stop() {
+	printf "Parando %s: " "$CONTAINER"
+	docker stop "$CONTAINER" >/dev/null 2>&1 && echo "OK" || echo "FALHOU"
+}
+
+case "$1" in
+	start) start ;;
+	stop) stop ;;
+	restart) stop; start ;;
+	*) echo "Uso: $0 {start|stop|restart}"; exit 1 ;;
+esac

@@ -1,0 +1,57 @@
+#!/bin/sh
+# S40wifi-ap - cria a rede Wi-Fi TP9-GRUPO01 com IP 192.168.50.1.
+# Ordem: wlan0 existe -> IP fixo -> hostapd (Access Point) -> dnsmasq (DHCP/DNS).
+
+IFACE="wlan0"
+ADDR="192.168.50.1/24"
+HOSTAPD_CONF="/etc/hostapd.conf"
+DNSMASQ_CONF="/etc/dnsmasq.conf"
+
+start() {
+	printf "Iniciando Wi-Fi AP: "
+
+	# driver do Wi-Fi onboard (Broadcom); se ja estiver carregado, nao faz nada
+	modprobe brcmfmac 2>/dev/null
+
+	# espera a interface wlan0 existir, por ate 30 s
+	i=0
+	while [ ! -d "/sys/class/net/$IFACE" ]; do
+		i=$((i + 1))
+		if [ "$i" -ge 30 ]; then
+			echo "FALHOU ($IFACE nao apareceu)"
+			return 1
+		fi
+		sleep 1
+	done
+
+	command -v rfkill >/dev/null 2>&1 && rfkill unblock wifi
+
+	ip link set "$IFACE" up
+	ip addr flush dev "$IFACE"
+	ip addr add "$ADDR" dev "$IFACE"
+
+	hostapd -B -P /var/run/hostapd.pid "$HOSTAPD_CONF" \
+		>/var/log/hostapd.log 2>&1 \
+		|| { echo "FALHOU (hostapd; veja /var/log/hostapd.log)"; return 1; }
+
+	dnsmasq -C "$DNSMASQ_CONF" -x /var/run/dnsmasq.pid \
+		|| { echo "FALHOU (dnsmasq)"; return 1; }
+
+	echo "OK"
+}
+
+stop() {
+	printf "Parando Wi-Fi AP: "
+	[ -f /var/run/dnsmasq.pid ] && kill "$(cat /var/run/dnsmasq.pid)" 2>/dev/null
+	[ -f /var/run/hostapd.pid ] && kill "$(cat /var/run/hostapd.pid)" 2>/dev/null
+	rm -f /var/run/dnsmasq.pid /var/run/hostapd.pid
+	ip addr flush dev "$IFACE" 2>/dev/null
+	echo "OK"
+}
+
+case "$1" in
+	start) start ;;
+	stop) stop ;;
+	restart) stop; start ;;
+	*) echo "Uso: $0 {start|stop|restart}"; exit 1 ;;
+esac

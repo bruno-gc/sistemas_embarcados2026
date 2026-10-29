@@ -1,0 +1,34 @@
+#!/bin/sh
+# S30hcsr04 - carrega o driver do HC-SR04 e espera o /dev/hcsr04 existir.
+# Primeiro da cadeia: driver -> Wi-Fi AP (S40) -> Docker (S60) -> container (S99).
+
+DEV="/dev/hcsr04"
+
+start() {
+	printf "Carregando driver hcsr04: "
+	modprobe hcsr04 || { echo "FALHOU (modprobe)"; return 1; }
+
+	# espera a condicao real (o no do dispositivo), por ate 15 s
+	i=0
+	while [ ! -c "$DEV" ]; do
+		i=$((i + 1))
+		if [ "$i" -ge 15 ]; then
+			echo "FALHOU ($DEV nao apareceu; veja: dmesg | grep -i hcsr04)"
+			return 1
+		fi
+		sleep 1
+	done
+	echo "OK"
+}
+
+stop() {
+	printf "Removendo driver hcsr04: "
+	modprobe -r hcsr04 && echo "OK" || echo "FALHOU"
+}
+
+case "$1" in
+	start) start ;;
+	stop) stop ;;
+	restart) stop; start ;;
+	*) echo "Uso: $0 {start|stop|restart}"; exit 1 ;;
+esac
