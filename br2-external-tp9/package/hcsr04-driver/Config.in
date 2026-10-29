@@ -1,0 +1,12 @@
+config BR2_PACKAGE_HCSR04_DRIVER
+	bool "hcsr04-driver"
+	depends on BR2_LINUX_KERNEL
+	help
+	  Driver Linux para o sensor ultrassonico HC-SR04.
+
+	  Compila o modulo hcsr04.ko para o kernel da imagem, cria o
+	  dispositivo /dev/hcsr04 e gera o Device Tree overlay
+	  hcsr04.dtbo (TRIG no GPIO23 e ECHO no GPIO24).
+
+comment "hcsr04-driver precisa de um kernel Linux"
+	depends on !BR2_LINUX_KERNEL
