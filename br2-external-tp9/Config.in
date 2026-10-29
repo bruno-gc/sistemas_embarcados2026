@@ -1,0 +1,5 @@
+menu "TP9 - pacotes do grupo"
+
+source "$BR2_EXTERNAL_TP9_PATH/package/hcsr04-driver/Config.in"
+
+endmenu
