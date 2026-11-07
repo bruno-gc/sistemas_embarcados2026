@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TP9 - Sensor Ultrassônico</title>
+  <link rel="stylesheet" href="/static/dashboard.css">
+</head>
+<body>
+  <main class="painel">
+    <header>
+      <p class="marca">CCS · Console Contra Sony</p>
+      <h1>Sensor ultrassônico HC-SR04</h1>
+    </header>
+
+    <section class="leitura" aria-live="polite">
+      <p class="rotulo">Distância</p>
+      <p class="valor"><span id="valor">--</span><span class="unidade">cm</span></p>
+      <p class="mm"><span id="mm">--</span> mm</p>
+    </section>
+
+    <section class="barra" aria-hidden="true">
+      <div class="trilho"><div id="preenchimento" class="preenchimento"></div></div>
+      <div class="escala"><span>0 cm</span><span>100 cm</span><span>200 cm</span></div>
+    </section>
+
+    <p class="status"><span id="ponto" class="ponto"></span><span id="status">Conectando ao sensor…</span></p>
+  </main>
+
+  <footer>TP Aula 9 · Raspberry Pi 4 · /dev/hcsr04 → Flask → navegador</footer>
+
+  <script src="/static/dashboard.js"></script>
+</body>
+</html>
