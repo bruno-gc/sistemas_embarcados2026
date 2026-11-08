@@ -1,0 +1,32 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * hcsr04-overlay.dts - Device Tree overlay do sensor HC-SR04
+ *
+ * Descreve o hardware: TRIG no GPIO23 e ECHO no GPIO24 (numeracao BCM).
+ * O driver hcsr04.ko se associa a este no pelo compatible "unisanta,hcsr04"
+ * e pega os GPIOs com devm_gpiod_get(dev, "trig"/"echo").
+ *
+ * O Buildroot compila este arquivo para hcsr04.dtbo (pacote hcsr04-driver)
+ * e o config.txt carrega o overlay com a linha "dtoverlay=hcsr04".
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	compatible = "brcm,bcm2711";
+
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			hcsr04 {
+				compatible = "unisanta,hcsr04";
+				trig-gpios = <&gpio 23 GPIO_ACTIVE_HIGH>;
+				echo-gpios = <&gpio 24 GPIO_ACTIVE_HIGH>;
+				status = "okay";
+			};
+		};
+	};
+};
