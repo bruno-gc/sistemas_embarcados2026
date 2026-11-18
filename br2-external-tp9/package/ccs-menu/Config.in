@@ -1,0 +1,16 @@
+config BR2_PACKAGE_CCS_MENU
+	bool "ccs-menu"
+	depends on BR2_PACKAGE_XORG7
+	depends on !BR2_STATIC_LIBS # sdl2
+	select BR2_PACKAGE_SDL2
+	select BR2_PACKAGE_SDL2_X11
+	select BR2_PACKAGE_SDL2_TTF
+	select BR2_PACKAGE_DEJAVU
+	help
+	  Menu grafico do CCS (Console Contra Sony): mostra os jogos
+	  de /etc/ccs/jogos.conf na HDMI e abre o escolhido. Aceita
+	  teclado e controle USB e atende pedidos do painel web
+	  (container Docker) por /run/ccs.
+
+comment "ccs-menu precisa do X.org (BR2_PACKAGE_XORG7)"
+	depends on !BR2_PACKAGE_XORG7
