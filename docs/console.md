@@ -71,7 +71,6 @@ O login em texto continua no vt1: `Ctrl+Alt+F1` mostra o terminal e `Ctrl+Alt+F2
 | Escolher jogo | setas | D-pad |
 | Jogar | Enter | A ou Start |
 | Sair para o terminal | Esc e depois Enter | Select e depois A |
-
 | Voltar ao menu durante o jogo | sair pelo menu do próprio jogo | segurar **Select + Start** por 2 s |
 
 O painel web também tem o botão **Encerrar jogo**.
