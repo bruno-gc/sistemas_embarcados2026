@@ -8,6 +8,10 @@ TARGET_DIR="$1"
 rm -f "$TARGET_DIR/etc/init.d/S99tp9-distance" \
       "$TARGET_DIR/opt/docker/tp9-distance.tar"
 
+# o pacote xorg-server instala um S40xorg que sobe um X vazio no boot; quem
+# sobe o X e o S95ccs-menu (com o menu dentro), senao seriam dois X no :0
+rm -f "$TARGET_DIR/etc/init.d/S40xorg"
+
 # scripts e binarios dos jogos executaveis (o zip pode perder o bit +x)
 if [ -d "$TARGET_DIR/opt/jogos" ]; then
 	chmod +x "$TARGET_DIR"/opt/jogos/*/start.sh 2>/dev/null || true
