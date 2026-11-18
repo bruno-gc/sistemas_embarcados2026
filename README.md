@@ -6,6 +6,8 @@ Imagem Linux embarcada, gerada integralmente pelo Buildroot para a Raspberry Pi 
 
 Tudo sobe sozinho no boot, sem nenhum comando manual e sem depender de Internet.
 
+> **Projeto final — CCS (Console Contra Sony):** a branch `console-final` traz a imagem do console, com menu gráfico na HDMI, 6 jogos e painel web no Docker. Ela é gerada por `scripts/build-console.sh` e documentada em [docs/console.md](docs/console.md). O restante deste README descreve o TP9.
+
 ---
 
 ## Identificação
