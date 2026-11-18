@@ -42,6 +42,8 @@ echo "==> 2/6 Emulador ARM (some a cada reboot da maquina de build)"
 docker run --privileged --rm tonistiigi/binfmt --install arm64 >/dev/null
 
 echo "==> 3/6 Imagem Docker do painel web (arm64)"
+# garante a imagem base arm64 (uma python:3.12-slim x86 no cache quebra o build)
+docker pull -q --platform linux/arm64 python:3.12-slim >/dev/null
 docker build --platform linux/arm64 -t ccs-console:1.0 "$REPO_DIR/console-app"
 mkdir -p "$OVERLAY/opt/docker"
 docker save ccs-console:1.0 -o "$OVERLAY/opt/docker/ccs-console.tar"
