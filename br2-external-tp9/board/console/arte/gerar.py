@@ -42,6 +42,53 @@ with sync_playwright() as p:
         render(pg, s, os.path.join(DEST, "capas", f"{jid}.png"), capas.W, capas.H)
     nav.close()
 
+# capas fornecidas pelo grupo (capas-oficiais/<id>.jpg|png) substituem a arte
+# gerada: viram 600x800 com cantos arredondados. Se a proporcao for muito
+# diferente de 3:4, a imagem inteira entra centralizada sobre uma copia
+# desfocada dela mesma (nada da capa e cortado).
+OFICIAIS = os.path.join(AQUI, "capas-oficiais")
+
+
+def preparar_capa(arq, w=capas.W, h=capas.H, raio=26):
+    im = Image.open(arq).convert("RGB")
+    alvo = w / h
+    prop = im.width / im.height
+    if abs(prop - alvo) / alvo <= 0.08:  # quase 3:4: corta as sobras
+        if prop > alvo:
+            nw = int(im.height * alvo)
+            im = im.crop(((im.width - nw) // 2, 0, (im.width + nw) // 2, im.height))
+        else:
+            nh = int(im.width / alvo)
+            im = im.crop((0, (im.height - nh) // 2, im.width, (im.height + nh) // 2))
+        capa = im.resize((w, h), Image.LANCZOS)
+    else:
+        escala = max(w / im.width, h / im.height)
+        fundo = im.resize((int(im.width * escala) + 1, int(im.height * escala) + 1), Image.LANCZOS)
+        fundo = fundo.crop(((fundo.width - w) // 2, (fundo.height - h) // 2,
+                            (fundo.width - w) // 2 + w, (fundo.height - h) // 2 + h))
+        fundo = ImageEnhance.Brightness(fundo.filter(ImageFilter.GaussianBlur(24))).enhance(0.6)
+        escala = min(w / im.width, h / im.height)
+        frente = im.resize((int(im.width * escala), int(im.height * escala)), Image.LANCZOS)
+        fundo.paste(frente, ((w - frente.width) // 2, (h - frente.height) // 2))
+        capa = fundo
+    mascara = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(mascara).rounded_rectangle((0, 0, w - 1, h - 1), raio, fill=255)
+    saida = capa.convert("RGBA")
+    saida.putalpha(mascara)
+    contorno = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    ImageDraw.Draw(contorno).rounded_rectangle((1, 1, w - 2, h - 2), raio - 1, outline=(255, 255, 255, 36), width=2)
+    saida.alpha_composite(contorno)
+    return saida
+
+
+for jid in capas.CAPAS:
+    for ext in ("png", "jpg", "jpeg", "webp"):
+        arq = os.path.join(OFICIAIS, f"{jid}.{ext}")
+        if os.path.exists(arq):
+            preparar_capa(arq).save(os.path.join(DEST, "capas", f"{jid}.png"))
+            print("capa do grupo:", jid, "<-", os.path.basename(arq))
+            break
+
 # fundo de cada jogo: a capa ampliada, desfocada e escurecida (atras do menu)
 for jid in capas.CAPAS:
     capa = Image.open(os.path.join(DEST, "capas", f"{jid}.png")).convert("RGB")
