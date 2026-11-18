@@ -1,0 +1,17 @@
+#!/bin/sh
+# ccs-jogar <id> - abre um jogo do console pelo terminal.
+# Com o menu aberto, pede para o menu abrir o jogo na HDMI. Sem o menu
+# (depois de "Sair para o terminal"), sobe o X so para o jogo.
+ID="$1"
+SCRIPT="$(grep "^$ID|" /etc/ccs/jogos.conf 2>/dev/null | cut -d'|' -f6)"
+[ -z "$SCRIPT" ] && SCRIPT="/opt/jogos/$ID/start.sh"
+if [ ! -f "$SCRIPT" ]; then
+	echo "Jogo '$ID' nao encontrado ($SCRIPT)"
+	exit 1
+fi
+if pidof ccs-menu >/dev/null; then
+	echo "jogar $ID" >/run/ccs/pedido
+	echo "Pedido enviado ao menu: o jogo abre na HDMI."
+else
+	exec xinit /bin/sh "$SCRIPT" -- :0 -nolisten tcp vt2
+fi

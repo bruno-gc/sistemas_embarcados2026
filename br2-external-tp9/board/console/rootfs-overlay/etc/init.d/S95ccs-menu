@@ -1,0 +1,49 @@
+#!/bin/sh
+# S95ccs-menu - abre o menu grafico do console na HDMI.
+# Sobe o servidor X no vt2 com o ccs-menu como unico programa. O terminal de
+# login continua no vt1 (Ctrl+Alt+F1); Ctrl+Alt+F2 volta para o menu.
+# Se o menu cair, abre de novo; se o usuario escolher "Sair para o terminal",
+# o menu cria /run/ccs/sair e o laco termina.
+
+PIDFILE=/var/run/ccs-menu.pid
+LOG=/var/log/ccs-menu.log
+RUN=/run/ccs
+
+sessao() {
+	export HOME=/root
+	while :; do
+		rm -f "$RUN/sair"
+		xinit /usr/bin/ccs-menu -- :0 -nolisten tcp -nocursor vt2 >>"$LOG" 2>&1
+		[ -e "$RUN/sair" ] && break
+		sleep 3
+	done
+	chvt 1 2>/dev/null
+}
+
+start() {
+	printf "Iniciando menu do console: "
+	if [ ! -x /usr/bin/ccs-menu ] || [ ! -x /usr/bin/xinit ]; then
+		echo "FALHOU (ccs-menu ou xinit ausente)"
+		return 1
+	fi
+	mkdir -p "$RUN"
+	sessao &
+	echo $! >"$PIDFILE"
+	echo "OK"
+}
+
+stop() {
+	printf "Parando menu do console: "
+	[ -f "$PIDFILE" ] && kill "$(cat "$PIDFILE")" 2>/dev/null
+	rm -f "$PIDFILE"
+	killall ccs-menu 2>/dev/null
+	killall Xorg 2>/dev/null
+	echo "OK"
+}
+
+case "$1" in
+	start) start ;;
+	stop) stop ;;
+	restart) stop; sleep 1; start ;;
+	*) echo "Uso: $0 {start|stop|restart}"; exit 1 ;;
+esac

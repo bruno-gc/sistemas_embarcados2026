@@ -1,0 +1,65 @@
+#!/bin/sh
+# S99ccs-console - sobe o painel web do console (Flask) num container Docker.
+# O container ve so o necessario:
+#   /etc/ccs (somente leitura) -> lista de jogos
+#   /run/ccs                   -> estado do menu e pedidos "jogar"/"parar"
+#   /dev/hcsr04 (se existir)   -> sensor do TP9, sem --privileged
+
+IMAGE="ccs-console:1.0"
+CONTAINER="ccs-console"
+TAR="/opt/docker/ccs-console.tar"
+DEV="/dev/hcsr04"
+
+start() {
+	printf "Iniciando %s: " "$CONTAINER"
+	mkdir -p /run/ccs
+
+	# garante o cgroup v2 montado (necessario para containers)
+	[ -f /sys/fs/cgroup/cgroup.controllers ] || mount -t cgroup2 none /sys/fs/cgroup
+
+	# garante o Docker Engine rodando
+	pidof dockerd >/dev/null || (dockerd >/var/log/dockerd.log 2>&1 &)
+
+	# espera o Docker responder (condicao real), por ate 60 s
+	i=0
+	until docker info >/dev/null 2>&1; do
+		i=$((i + 1))
+		if [ "$i" -ge 60 ]; then
+			echo "FALHOU (dockerd nao respondeu)"
+			return 1
+		fi
+		sleep 1
+	done
+
+	# carrega a imagem do cartao so se ela ainda nao existir
+	if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+		docker load -i "$TAR" >/dev/null || { echo "FALHOU (docker load)"; return 1; }
+	fi
+
+	# o sensor e opcional: so passa o --device se o driver criou o dispositivo
+	DEVOPT=""
+	[ -c "$DEV" ] && DEVOPT="--device=$DEV:$DEV"
+
+	docker rm -f "$CONTAINER" >/dev/null 2>&1
+	docker run -d --name "$CONTAINER" \
+		$DEVOPT \
+		-v /etc/ccs:/etc/ccs:ro \
+		-v /run/ccs:/run/ccs \
+		-e CCS_HOSTNAME="$(hostname)" \
+		-p 80:5000 \
+		--restart unless-stopped \
+		"$IMAGE" >/dev/null \
+		&& echo "OK" || echo "FALHOU (docker run)"
+}
+
+stop() {
+	printf "Parando %s: " "$CONTAINER"
+	docker stop "$CONTAINER" >/dev/null 2>&1 && echo "OK" || echo "FALHOU"
+}
+
+case "$1" in
+	start) start ;;
+	stop) stop ;;
+	restart) stop; start ;;
+	*) echo "Uso: $0 {start|stop|restart}"; exit 1 ;;
+esac

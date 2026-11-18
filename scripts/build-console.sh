@@ -1,0 +1,64 @@
+#!/bin/bash
+# build-console.sh - gera a imagem final do CCS (console com os 6 jogos).
+#
+# Uso (na maquina de build):
+#   ./scripts/build-console.sh
+#
+# Variaveis opcionais:
+#   JOGOS_ZIP      zip com os jogos do Wecton  (padrao: ~/j/entrega_nino.zip)
+#   CCS_JOGOS_DIR  pasta ja extraida, com opt/jogos e usr/bin
+#                  (padrao: ~/j/e/entrega_nino)
+#   OUTPUT         pasta de saida do Buildroot (padrao: ~/output-console)
+#
+# Os jogos NAO vao para o GitHub (sao grandes e tem conteudo com direitos
+# autorais): entram so na imagem, como mais um rootfs overlay.
+set -e
+
+BR_VERSION="2026.02.3"
+REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+BR_DIR="${BR_DIR:-$HOME/buildroot-$BR_VERSION}"
+EXTERNAL="$REPO_DIR/br2-external-tp9"
+OVERLAY="$EXTERNAL/board/console/rootfs-overlay"
+DEFCONFIG="ccs_console_raspberrypi4_defconfig"
+OUTPUT="${OUTPUT:-$HOME/output-console}"
+JOGOS_ZIP="${JOGOS_ZIP:-$HOME/j/entrega_nino.zip}"
+export CCS_JOGOS_DIR="${CCS_JOGOS_DIR:-$HOME/j/e/entrega_nino}"
+
+echo "==> 1/6 Jogos ($CCS_JOGOS_DIR)"
+if [ ! -d "$CCS_JOGOS_DIR/opt/jogos" ]; then
+    [ -f "$JOGOS_ZIP" ] || { echo "ERRO: nao achei $CCS_JOGOS_DIR nem $JOGOS_ZIP"; exit 1; }
+    mkdir -p "$(dirname "$CCS_JOGOS_DIR")"
+    unzip -q -o "$JOGOS_ZIP" -d "$(dirname "$CCS_JOGOS_DIR")"
+fi
+for j in cs16 sm64 zelda crash doom quake; do
+    if [ -f "$CCS_JOGOS_DIR/opt/jogos/$j/start.sh" ]; then
+        printf "    %-6s %s\n" "$j" "$(du -sh "$CCS_JOGOS_DIR/opt/jogos/$j" | cut -f1)"
+    else
+        echo "    $j     FALTANDO (o card aparece, mas o jogo nao abre)"
+    fi
+done
+
+echo "==> 2/6 Emulador ARM (some a cada reboot da maquina de build)"
+docker run --privileged --rm tonistiigi/binfmt --install arm64 >/dev/null
+
+echo "==> 3/6 Imagem Docker do painel web (arm64)"
+docker build --platform linux/arm64 -t ccs-console:1.0 "$REPO_DIR/console-app"
+mkdir -p "$OVERLAY/opt/docker"
+docker save ccs-console:1.0 -o "$OVERLAY/opt/docker/ccs-console.tar"
+
+echo "==> 4/6 Buildroot $BR_VERSION"
+if [ ! -d "$BR_DIR" ]; then
+    wget -O /tmp/buildroot.tar.gz "https://buildroot.org/downloads/buildroot-$BR_VERSION.tar.gz"
+    tar xf /tmp/buildroot.tar.gz -C "$(dirname "$BR_DIR")"
+fi
+
+echo "==> 5/6 Configuracao ($DEFCONFIG)"
+make -C "$BR_DIR" O="$OUTPUT" BR2_EXTERNAL="$EXTERNAL" "$DEFCONFIG"
+
+echo "==> 6/6 Compilacao (a primeira vez demora: X.org, Mesa, SDL2...)"
+make -C "$BR_DIR" O="$OUTPUT"
+
+echo
+echo "Imagem pronta: $OUTPUT/images/sdcard.img ($(du -h "$OUTPUT/images/sdcard.img" | cut -f1))"
+echo "Hashes (vao no README):"
+sha256sum "$OUTPUT/images/sdcard.img" "$OVERLAY/opt/docker/ccs-console.tar"
