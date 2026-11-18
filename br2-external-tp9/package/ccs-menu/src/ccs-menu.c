@@ -570,7 +570,7 @@ static void desenhar_rodape(void)
 	x += dica(x, y, "←", "→", "Escolher") + px(40);
 	x += dica(x, y, "Enter", NULL, "Jogar") + px(40);
 	x += dica(x, y, "Esc", NULL, "Terminal") + px(40);
-	texto(F_DICA, "Controle USB: D-pad · A · Select", x, y + (altura(F_CHIP) + px(8) - altura(F_DICA)) / 2, FRACO, 160, 0);
+	texto(F_DICA, "No jogo: Select + Start (2 s) volta ao menu", x, y + (altura(F_CHIP) + px(8) - altura(F_DICA)) / 2, FRACO, 160, 0);
 
 	char ip[64], linha[160];
 	endereco_ip(ip, sizeof ip);
@@ -793,7 +793,60 @@ static void fechar_janela(void)
 	win = NULL;
 }
 
+/* ---------- controles ---------- */
+
+/* Controles reconhecidos pelo SDL (Xbox, PlayStation, 8BitDo...) viram
+ * SDL_GameController. Controles genericos sem mapeamento ficam como
+ * SDL_Joystick "cru": direcional pelo hat/eixo 0, botoes 0-3 = confirmar,
+ * 8 = Select, 9 = Start (o padrao dos controles USB baratos). */
+#define MAX_CONTROLES 8
+static SDL_GameController *ctl[MAX_CONTROLES];
+static SDL_Joystick *joy[MAX_CONTROLES];
+
+static void abrir_controle(int idx)
+{
+	for (int i = 0; i < MAX_CONTROLES; i++) {
+		if (ctl[i] || joy[i])
+			continue;
+		if (SDL_IsGameController(idx))
+			ctl[i] = SDL_GameControllerOpen(idx);
+		else
+			joy[i] = SDL_JoystickOpen(idx);
+		return;
+	}
+}
+
+static int eh_controle_mapeado(SDL_JoystickID id)
+{
+	return SDL_GameControllerFromInstanceID(id) != NULL;
+}
+
+/* Select + Start segurados juntos (em qualquer controle) */
+static int atalho_sair_apertado(void)
+{
+	SDL_GameControllerUpdate();
+	SDL_JoystickUpdate();
+	for (int i = 0; i < MAX_CONTROLES; i++) {
+		if (ctl[i] && SDL_GameControllerGetButton(ctl[i], SDL_CONTROLLER_BUTTON_BACK) &&
+		    SDL_GameControllerGetButton(ctl[i], SDL_CONTROLLER_BUTTON_START))
+			return 1;
+		if (joy[i] && SDL_JoystickNumButtons(joy[i]) > 9 && SDL_JoystickGetButton(joy[i], 8) &&
+		    SDL_JoystickGetButton(joy[i], 9))
+			return 1;
+	}
+	return 0;
+}
+
 /* ---------- jogar ---------- */
+
+static void encerrar_jogo(pid_t pid)
+{
+	int st;
+	kill(-pid, SIGTERM);
+	for (int k = 0; k < 30 && waitpid(pid, &st, WNOHANG) == 0; k++)
+		usleep(100000);
+	kill(-pid, SIGKILL);
+}
 
 static void mostrar_aviso(const char *msg)
 {
@@ -814,9 +867,10 @@ static void jogar(int i)
 	}
 	tela_carregando(j);
 
-	/* libera a tela e o controle para o jogo */
+	/* libera a tela para o jogo; o controle continua aberto aqui so para o
+	 * atalho Select + Start (o jogo le o mesmo controle normalmente) */
 	fechar_janela();
-	SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
+	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 
 	escrever_status("jogando", j);
 	pid_t pid = fork();
@@ -826,24 +880,36 @@ static void jogar(int i)
 		_exit(127);
 	}
 	if (pid > 0) {
-		/* espera o jogo acabar; o painel web pode pedir para encerrar */
-		for (;;) {
+		/* espera o jogo acabar. Para voltar ao menu sem teclado: segurar
+		 * Select + Start por 2 s, ou "Encerrar jogo" no painel web. */
+		Uint32 atalho_desde = 0;
+		for (int volta = 0;; volta++) {
 			int st;
 			pid_t r = waitpid(pid, &st, WNOHANG);
 			if (r == pid || (r < 0 && errno != EINTR))
 				break;
-			if (ler_pedido(buf, sizeof buf) && strcmp(buf, "parar") == 0) {
-				kill(-pid, SIGTERM);
-				for (int k = 0; k < 30 && waitpid(pid, &st, WNOHANG) == 0; k++)
-					usleep(100000);
-				kill(-pid, SIGKILL);
+			SDL_Event e;
+			while (SDL_PollEvent(&e))
+				if (e.type == SDL_JOYDEVICEADDED)
+					abrir_controle(e.jdevice.which);
+			if (atalho_sair_apertado()) {
+				if (!atalho_desde)
+					atalho_desde = SDL_GetTicks();
+				else if (SDL_GetTicks() - atalho_desde > 2000) {
+					encerrar_jogo(pid);
+					atalho_desde = 0;
+				}
+			} else {
+				atalho_desde = 0;
 			}
-			usleep(250000);
+			if (volta % 5 == 0 && ler_pedido(buf, sizeof buf) && strcmp(buf, "parar") == 0)
+				encerrar_jogo(pid);
+			usleep(50000);
 		}
 	}
 	escrever_status("menu", NULL);
 
-	SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
+	SDL_InitSubSystem(SDL_INIT_VIDEO);
 	if (abrir_janela() != 0) {
 		fprintf(stderr, "ccs-menu: nao reabriu a janela: %s\n", SDL_GetError());
 		exit(1);
@@ -956,8 +1022,41 @@ int main(int argc, char **argv)
 				goto fim;
 			if (e.type == SDL_KEYDOWN)
 				k = e.key.keysym.sym;
-			if (e.type == SDL_CONTROLLERDEVICEADDED)
-				SDL_GameControllerOpen(e.cdevice.which);
+			if (e.type == SDL_JOYDEVICEADDED)
+				abrir_controle(e.jdevice.which);
+			if (e.type == SDL_JOYDEVICEREMOVED)
+				for (int c = 0; c < MAX_CONTROLES; c++) {
+					if (ctl[c] && !SDL_GameControllerGetAttached(ctl[c])) {
+						SDL_GameControllerClose(ctl[c]);
+						ctl[c] = NULL;
+					}
+					if (joy[c] && !SDL_JoystickGetAttached(joy[c])) {
+						SDL_JoystickClose(joy[c]);
+						joy[c] = NULL;
+					}
+				}
+			/* controle generico (sem mapeamento no SDL) */
+			if (e.type == SDL_JOYHATMOTION && !eh_controle_mapeado(e.jhat.which)) {
+				if (e.jhat.value & SDL_HAT_LEFT)
+					k = SDLK_LEFT;
+				else if (e.jhat.value & SDL_HAT_RIGHT)
+					k = SDLK_RIGHT;
+			}
+			if (e.type == SDL_JOYBUTTONDOWN && !eh_controle_mapeado(e.jbutton.which)) {
+				if (e.jbutton.button <= 3 || e.jbutton.button == 9)
+					k = SDLK_RETURN;
+				else if (e.jbutton.button == 8)
+					k = SDLK_ESCAPE;
+			}
+			if (e.type == SDL_JOYAXISMOTION && e.jaxis.axis == 0 && !eh_controle_mapeado(e.jaxis.which)) {
+				int dir = e.jaxis.value < -16000 ? -1 : (e.jaxis.value > 16000 ? 1 : 0);
+				if (dir != repete_dir) {
+					repete_dir = dir;
+					repete_ms = SDL_GetTicks() + 380;
+					if (dir)
+						k = dir < 0 ? SDLK_LEFT : SDLK_RIGHT;
+				}
+			}
 			if (e.type == SDL_CONTROLLERBUTTONDOWN) {
 				switch (e.cbutton.button) {
 				case SDL_CONTROLLER_BUTTON_DPAD_LEFT: k = SDLK_LEFT; break;

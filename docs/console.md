@@ -72,7 +72,20 @@ O login em texto continua no vt1: `Ctrl+Alt+F1` mostra o terminal e `Ctrl+Alt+F2
 | Jogar | Enter | A ou Start |
 | Sair para o terminal | Esc e depois Enter | Select e depois A |
 
-Para voltar ao menu, saia do jogo pelo menu do próprio jogo. Outra opção é o botão **Encerrar jogo** no painel web.
+| Voltar ao menu durante o jogo | sair pelo menu do próprio jogo | segurar **Select + Start** por 2 s |
+
+O painel web também tem o botão **Encerrar jogo**.
+
+O menu reconhece controles com mapeamento no SDL, como Xbox, PlayStation, 8BitDo e muitos genéricos, porque usa a base `gamecontrollerdb.txt` que vem com o Zelda. Controles sem mapeamento também funcionam no menu: o direcional e os botões 0–3 confirmam, o 8 é Select e o 9 é Start. Dentro de cada jogo, quem lê o controle é o próprio motor:
+
+| Jogo | Controle |
+| --- | --- |
+| Super Mario 64 (sm64ex) | sim, direto |
+| Zelda (Ship of Harkinian) | sim; F1 abre a tela de configurar botões |
+| Crash (PCSX-ReARMed) | sim; Esc abre o menu do emulador para mapear |
+| Quake (QuakeSpasm) | sim, direto (analógicos e gatilhos) |
+| Counter-Strike (Xash3D) | parcial: o jogo foi feito para teclado e mouse |
+| DOOM (Chocolate Doom) | precisa ativar o joystick na configuração; o padrão é o teclado |
 
 ## Gerar a imagem
 

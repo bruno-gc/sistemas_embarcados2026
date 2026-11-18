@@ -11,6 +11,14 @@ RUN=/run/ccs
 
 sessao() {
 	export HOME=/root
+	# mapeamentos de controles USB para o SDL (vale para o menu e os jogos);
+	# o Zelda (Ship of Harkinian) ja traz a base da comunidade
+	for db in /etc/ccs/gamecontrollerdb.txt /opt/jogos/zelda/gamecontrollerdb.txt; do
+		if [ -f "$db" ]; then
+			export SDL_GAMECONTROLLERCONFIG_FILE="$db"
+			break
+		fi
+	done
 	while :; do
 		rm -f "$RUN/sair"
 		xinit /usr/bin/ccs-menu -- :0 -nolisten tcp -nocursor vt2 >>"$LOG" 2>&1
