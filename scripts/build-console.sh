@@ -44,7 +44,24 @@ docker run --privileged --rm tonistiigi/binfmt --install arm64 >/dev/null
 echo "==> 3/6 Imagem Docker do painel web (arm64)"
 # garante a imagem base arm64 (uma python:3.12-slim x86 no cache quebra o build)
 docker pull -q --platform linux/arm64 python:3.12-slim >/dev/null
-docker build --platform linux/arm64 -t ccs-console:1.0 "$REPO_DIR/console-app"
+if docker buildx version >/dev/null 2>&1; then
+    docker build --platform linux/arm64 -t ccs-console:1.0 "$REPO_DIR/console-app"
+else
+    # Sem o buildx, o builder antigo do Docker falha com imagem de outra
+    # arquitetura ("does not provide the specified platform"). Faz o mesmo que
+    # o Dockerfile, a mao: instala o Flask num container arm64 e salva com
+    # docker commit.
+    docker rm -f ccs-console-build >/dev/null 2>&1 || true
+    docker run --platform linux/arm64 --name ccs-console-build \
+        -v "$REPO_DIR/console-app:/src:ro" python:3.12-slim \
+        sh -c "mkdir -p /app && cp -r /src/. /app && pip install --no-cache-dir -q -r /app/requirements.txt"
+    docker commit \
+        --change 'WORKDIR /app' --change 'EXPOSE 5000' \
+        --change 'CMD ["python", "app.py"]' \
+        ccs-console-build ccs-console:1.0 >/dev/null
+    docker rm ccs-console-build >/dev/null
+fi
+docker image inspect ccs-console:1.0 --format '    imagem ccs-console:1.0 ({{.Architecture}})'
 mkdir -p "$OVERLAY/opt/docker"
 docker save ccs-console:1.0 -o "$OVERLAY/opt/docker/ccs-console.tar"
 
