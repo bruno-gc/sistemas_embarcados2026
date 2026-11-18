@@ -4,17 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CCS - Console Contra Sony</title>
+  <link rel="icon" href="{{ url_for('static', filename='arte/favicon.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='painel.css') }}">
 </head>
 <body>
   <header>
-    <div class="marca"><span class="sigla">CCS</span> Console Contra Sony</div>
+    <img class="logo" src="{{ url_for('static', filename='arte/logo.png') }}" alt="CCS - Console Contra Sony">
     <div class="sistema" id="sistema">conectando...</div>
   </header>
 
   <main>
     <section class="tv" id="tv">
-      <div>
+      <img class="tv-capa" id="tv-capa" alt="" hidden>
+      <div class="tv-texto">
         <div class="rotulo">Na TV agora</div>
         <div class="estado" id="estado">--</div>
       </div>

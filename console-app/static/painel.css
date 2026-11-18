@@ -10,6 +10,7 @@
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+html { background: #06070e; }
 body {
   margin: 0;
   background: linear-gradient(#10131f, #06070e) fixed;
@@ -24,8 +25,7 @@ header {
   padding-top: 24px; padding-bottom: 16px;
   border-bottom: 1px solid var(--borda);
 }
-.marca { font-size: 1.5rem; font-weight: 700; }
-.sigla { color: var(--azul); font-size: 2.2rem; margin-right: 6px; }
+.logo { height: 56px; width: auto; display: block; }
 .sistema { color: var(--fraco); font-size: .9rem; }
 .rotulo { color: var(--fraco); font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; }
 .estado { font-size: 1.4rem; font-weight: 700; margin-top: 4px; }
@@ -34,24 +34,35 @@ header {
   margin: 24px 0 16px; padding: 18px 20px;
   background: var(--card); border: 1px solid var(--borda); border-radius: 10px;
 }
-.tv.jogando { border-color: var(--azul); }
+.tv { justify-content: flex-start; }
+.tv-texto { flex: 1; }
+.tv-capa { width: 54px; height: 72px; border-radius: 6px; object-fit: cover; }
+.tv.jogando { border-color: var(--azul); box-shadow: 0 0 24px rgba(74, 125, 255, .25); }
 .aviso {
   margin: 0 0 16px; padding: 12px 16px; border-radius: 8px;
   background: #3a2f10; color: var(--aviso); border: 1px solid #6a5418;
 }
-.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px; }
 .jogo {
   background: var(--card); border: 1px solid var(--borda); border-radius: 10px;
   overflow: hidden; display: flex; flex-direction: column;
 }
 .jogo .capa {
-  height: 110px; display: grid; place-items: center;
+  aspect-ratio: 3 / 4; display: grid; place-items: center;
   font-size: 3rem; font-weight: 800; letter-spacing: .02em;
 }
+.jogo img.capa { width: 100%; height: auto; object-fit: cover; display: block; }
+.jogo .genero {
+  align-self: flex-start; font-size: .72rem; font-weight: 800; letter-spacing: .06em;
+  padding: 3px 9px; border-radius: 999px; color: white;
+}
+.jogo .desc { color: var(--fraco); font-size: .85rem; line-height: 1.35; flex: 1; }
 .jogo .info { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
 .jogo .nome { font-weight: 700; font-size: 1.05rem; }
-.jogo .motor { color: var(--fraco); font-size: .9rem; flex: 1; }
-.jogo.ativo { border-color: var(--azul); box-shadow: 0 0 0 2px var(--azul); }
+.jogo .motor { color: var(--fraco); font-size: .85rem; }
+.jogo { transition: transform .15s ease, border-color .15s ease; }
+.jogo:hover { transform: translateY(-3px); border-color: #4a5276; }
+.jogo.ativo { border-color: var(--azul); box-shadow: 0 0 0 2px var(--azul), 0 8px 30px rgba(74, 125, 255, .3); }
 button {
   margin-top: 10px; padding: 10px 14px; border: 0; border-radius: 8px;
   background: var(--azul); color: white; font-weight: 700; font-size: .95rem; cursor: pointer;

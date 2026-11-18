@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+<defs>
+  <linearGradient id="escuro" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#000" stop-opacity="0"/>
+    <stop offset="0.55" stop-color="#05060c" stop-opacity="0.35"/>
+    <stop offset="1" stop-color="#05060c" stop-opacity="0.96"/>
+  </linearGradient>
+  <filter id="blur8"><feGaussianBlur stdDeviation="8"/></filter>
+  <filter id="blur20"><feGaussianBlur stdDeviation="20"/></filter>
+  <filter id="blur3"><feGaussianBlur stdDeviation="3"/></filter>
+  <clipPath id="canto"><rect width="600" height="800" rx="26"/></clipPath>
+</defs>
+<g clip-path="url(#canto)">
+<defs><radialGradient id="fundo6" cx="0.5" cy="0.62" r="0.6">
+      <stop offset="0" stop-color="#c79a52"/><stop offset="0.3" stop-color="#5e4526"/><stop offset="1" stop-color="#0b0906"/></radialGradient></defs>
+    <rect width="600" height="800" fill="url(#fundo6)"/><path d="M40 800 V323 A260 260 0 0 1 560 323 V800" fill="none" stroke="#2a2016" stroke-opacity="0.95" stroke-width="46"/><path d="M97 800 V404 A203 203 0 0 1 503 404 V800" fill="none" stroke="#2a2016" stroke-opacity="0.85" stroke-width="36"/><path d="M142 800 V467 A158 158 0 0 1 458 467 V800" fill="none" stroke="#2a2016" stroke-opacity="0.75" stroke-width="28"/><path d="M177 800 V516 A123 123 0 0 1 423 516 V800" fill="none" stroke="#2a2016" stroke-opacity="0.65" stroke-width="22"/><path d="M204 800 V554 A96 96 0 0 1 396 554 V800" fill="none" stroke="#2a2016" stroke-opacity="0.55" stroke-width="17"/><path d="M225 800 V584 A75 75 0 0 1 375 584 V800" fill="none" stroke="#2a2016" stroke-opacity="0.45" stroke-width="13"/><path d="M241 800 V607 A59 59 0 0 1 359 607 V800" fill="none" stroke="#2a2016" stroke-opacity="0.35" stroke-width="10"/>
+    <path d="M0 800 L240 560 H360 L600 800 Z" fill="#17110b"/>
+    <g fill="#ffb347" filter="url(#blur8)"><circle cx="70" cy="420" r="26"/><circle cx="530" cy="420" r="26"/></g>
+    <g fill="#ffe0a8"><ellipse cx="70" cy="420" rx="7" ry="12"/><ellipse cx="530" cy="420" rx="7" ry="12"/></g>
+    <rect width="600" height="800" fill="#7d6a4a" fill-opacity="0.08"/>
+<rect y="336" width="600" height="464" fill="url(#escuro)"/>
+<rect x="44" y="622" width="56" height="6" rx="3" fill="#7d6a4a"/>
+<text x="44" y="708" font-family="Inter" font-weight="900" font-size="64" fill="#fff" letter-spacing="-1">QUAKE</text>
+<text x="46" y="748" font-family="Inter" font-weight="600" font-size="22" fill="#ffffff" fill-opacity="0.72" letter-spacing="0.5">1996  ·  QuakeSpasm</text>
+<g transform="translate(36,36)">
+  <rect width="149" height="38" rx="19" fill="#05060c" fill-opacity="0.55" stroke="#fff" stroke-opacity="0.25"/>
+  <text x="17" y="25" font-family="Inter" font-weight="700" font-size="16" fill="#fff" letter-spacing="1.6">FPS GÓTICO</text>
+</g>
+<g transform="translate(504,36)" opacity="0.9">
+  <rect width="60" height="38" rx="10" fill="#05060c" fill-opacity="0.55" stroke="#fff" stroke-opacity="0.25"/>
+  <text x="30" y="26" text-anchor="middle" font-family="Inter" font-weight="900" font-size="17" fill="#fff" letter-spacing="1">CCS</text>
+</g>
+</g>
+<rect x="1" y="1" width="598" height="798" rx="25" fill="none" stroke="#fff" stroke-opacity="0.14" stroke-width="2"/>
+</svg>

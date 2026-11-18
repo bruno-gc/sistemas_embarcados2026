@@ -5,7 +5,10 @@ config BR2_PACKAGE_CCS_MENU
 	select BR2_PACKAGE_SDL2
 	select BR2_PACKAGE_SDL2_X11
 	select BR2_PACKAGE_SDL2_TTF
-	select BR2_PACKAGE_DEJAVU
+	select BR2_PACKAGE_SDL2_IMAGE
+	select BR2_PACKAGE_LIBPNG # capas e logo
+	select BR2_PACKAGE_JPEG # fundos
+	select BR2_PACKAGE_DEJAVU # fonte reserva (o menu usa a Inter)
 	help
 	  Menu grafico do CCS (Console Contra Sony): mostra os jogos
 	  de /etc/ccs/jogos.conf na HDMI e abre o escolhido. Aceita

@@ -75,6 +75,8 @@ echo "==> 5/6 Configuracao ($DEFCONFIG)"
 make -C "$BR_DIR" O="$OUTPUT" BR2_EXTERNAL="$EXTERNAL" "$DEFCONFIG"
 
 echo "==> 6/6 Compilacao (a primeira vez demora: X.org, Mesa, SDL2...)"
+# o menu e um pacote local: recompila sempre, para pegar as mudancas do repo
+make -C "$BR_DIR" O="$OUTPUT" ccs-menu-dirclean
 make -C "$BR_DIR" O="$OUTPUT"
 
 echo

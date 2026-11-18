@@ -1,0 +1,87 @@
+"""Renderiza a arte (SVG -> PNG) e as texturas de efeito do menu.
+
+So roda na maquina de desenvolvimento (precisa de Playwright e Pillow); os
+PNG gerados ficam no repositorio, entao o build do Buildroot nao precisa
+disso. Uso: python3 gerar.py
+"""
+import os
+import sys
+
+from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
+from playwright.sync_api import sync_playwright
+
+sys.path.insert(0, os.path.dirname(__file__))
+import capas  # noqa: E402
+
+AQUI = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.abspath(os.path.join(AQUI, "../../../.."))
+DEST = os.path.join(AQUI, "../rootfs-overlay/usr/share/ccs")
+WEB = os.path.join(REPO, "console-app/static/arte")
+SVG = os.path.join(AQUI, "svg")
+for d in (DEST + "/capas", DEST + "/fx", WEB, SVG):
+    os.makedirs(d, exist_ok=True)
+
+
+def render(pagina, svg_path, png_path, w, h):
+    pagina.set_viewport_size({"width": w, "height": h})
+    pagina.goto("file://" + svg_path)
+    pagina.wait_for_timeout(150)
+    pagina.screenshot(path=png_path, omit_background=True, clip={"x": 0, "y": 0, "width": w, "height": h})
+
+
+with sync_playwright() as p:
+    nav = p.chromium.launch()
+    pg = nav.new_page()
+    open(os.path.join(SVG, "emblema.svg"), "w").write(capas.emblema())
+    open(os.path.join(SVG, "logo.svg"), "w").write(capas.logo_horizontal())
+    render(pg, os.path.join(SVG, "emblema.svg"), os.path.join(DEST, "emblema.png"), 512, 512)
+    render(pg, os.path.join(SVG, "logo.svg"), os.path.join(DEST, "logo.png"), 1240, 300)
+    for jid, fn in capas.CAPAS.items():
+        s = os.path.join(SVG, f"{jid}.svg")
+        open(s, "w").write(fn())
+        render(pg, s, os.path.join(DEST, "capas", f"{jid}.png"), capas.W, capas.H)
+    nav.close()
+
+# fundo de cada jogo: a capa ampliada, desfocada e escurecida (atras do menu)
+for jid in capas.CAPAS:
+    capa = Image.open(os.path.join(DEST, "capas", f"{jid}.png")).convert("RGB")
+    f = capa.crop((0, 80, 600, 418)).resize((640, 360), Image.LANCZOS)
+    f = f.filter(ImageFilter.GaussianBlur(30))
+    f = ImageEnhance.Brightness(f).enhance(0.42)
+    f.save(os.path.join(DEST, "capas", f"{jid}-fundo.jpg"), quality=88)
+
+# texturas de efeito (brancas: o menu tinge com a cor do jogo)
+def retangulo_suave(w, h, r, borda, blur, nome, preenchido=False):
+    m = blur * 3
+    im = Image.new("L", (w + 2 * m, h + 2 * m), 0)
+    d = ImageDraw.Draw(im)
+    if preenchido:
+        d.rounded_rectangle((m, m, m + w, m + h), r, fill=255)
+    else:
+        d.rounded_rectangle((m, m, m + w, m + h), r, outline=255, width=borda)
+    im = im.filter(ImageFilter.GaussianBlur(blur))
+    rgba = Image.new("RGBA", im.size, (255, 255, 255, 0))
+    rgba.putalpha(im)
+    rgba.save(os.path.join(DEST, "fx", nome))
+
+retangulo_suave(300, 400, 22, 22, 20, "brilho.png")            # aura do jogo escolhido
+retangulo_suave(300, 400, 22, 0, 26, "sombra.png", True)       # sombra dos cards
+painel = Image.new("RGBA", (96, 96), (255, 255, 255, 0))        # 9-slice: paineis e botoes
+ImageDraw.Draw(painel).rounded_rectangle((0, 0, 95, 95), 28, fill=(255, 255, 255, 255))
+painel.save(os.path.join(DEST, "fx", "painel.png"))
+borda = Image.new("RGBA", (96, 96), (255, 255, 255, 0))
+ImageDraw.Draw(borda).rounded_rectangle((0, 0, 95, 95), 28, outline=(255, 255, 255, 255), width=4)
+borda.save(os.path.join(DEST, "fx", "borda.png"))
+ponto = Image.new("L", (64, 64), 0)
+ImageDraw.Draw(ponto).ellipse((16, 16, 48, 48), fill=255)
+ponto = ponto.filter(ImageFilter.GaussianBlur(7))
+pt = Image.new("RGBA", (64, 64), (255, 255, 255, 0)); pt.putalpha(ponto)
+pt.save(os.path.join(DEST, "fx", "particula.png"))
+
+# copias para o painel web
+import shutil  # noqa: E402
+for jid in capas.CAPAS:
+    Image.open(os.path.join(DEST, "capas", f"{jid}.png")).resize((300, 400), Image.LANCZOS).save(os.path.join(WEB, f"{jid}.png"))
+shutil.copy(os.path.join(DEST, "logo.png"), os.path.join(WEB, "logo.png"))
+Image.open(os.path.join(DEST, "emblema.png")).resize((64, 64), Image.LANCZOS).save(os.path.join(WEB, "favicon.png"))
+print("arte gerada em", DEST)

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+<defs>
+  <linearGradient id="escuro" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#000" stop-opacity="0"/>
+    <stop offset="0.55" stop-color="#05060c" stop-opacity="0.35"/>
+    <stop offset="1" stop-color="#05060c" stop-opacity="0.96"/>
+  </linearGradient>
+  <filter id="blur8"><feGaussianBlur stdDeviation="8"/></filter>
+  <filter id="blur20"><feGaussianBlur stdDeviation="20"/></filter>
+  <filter id="blur3"><feGaussianBlur stdDeviation="3"/></filter>
+  <clipPath id="canto"><rect width="600" height="800" rx="26"/></clipPath>
+</defs>
+<g clip-path="url(#canto)">
+<defs><linearGradient id="ceu4" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a0f45"/><stop offset="0.45" stop-color="#c2366b"/><stop offset="0.68" stop-color="#ff8a3a"/><stop offset="0.7" stop-color="#ffcf7a"/></linearGradient>
+      <linearGradient id="mar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b2a6e"/><stop offset="1" stop-color="#12081e"/></linearGradient></defs>
+    <rect width="600" height="800" fill="url(#ceu4)"/>
+    <circle cx="300" cy="500" r="200" fill="#ffd27a" fill-opacity="0.35" filter="url(#blur20)"/>
+    <circle cx="300" cy="520" r="86" fill="#ffe3a3"/>
+    <path d="M150 548 L260 400 Q280 380 300 382 Q320 380 340 400 L470 548 Z" fill="#3b1430"/>
+    <path d="M285 390 q-20 -60 10 -110 q30 -50 -5 -100" stroke="#e9b3c9" stroke-opacity="0.35" stroke-width="26" fill="none" filter="url(#blur8)"/>
+    <rect y="548" width="600" height="252" fill="url(#mar)"/><rect x="211" y="560" width="179" height="3" rx="1.5" fill="#ffd27a" fill-opacity="0.37"/><rect x="220" y="574" width="161" height="3" rx="1.5" fill="#ffd27a" fill-opacity="0.52"/><rect x="231" y="588" width="138" height="3" rx="1.5" fill="#ffd27a" fill-opacity="0.67"/><rect x="224" y="602" width="153" height="3" rx="1.5" fill="#ffd27a" fill-opacity="0.55"/><rect x="248" y="616" width="104" height="3" rx="1.5" fill="#ffd27a" fill-opacity="0.68"/><rect x="245" y="630" width="110" height="3" rx="1.5" fill="#ffd27a" fill-opacity="0.42"/><rect x="244" y="644" width="112" height="3" rx="1.5" fill="#ffd27a" fill-opacity="0.46"/><rect x="267" y="658" width="65" height="3" rx="1.5" fill="#ffd27a" fill-opacity="0.40"/><rect x="265" y="672" width="70" height="3" rx="1.5" fill="#ffd27a" fill-opacity="0.58"/><rect x="271" y="686" width="59" height="3" rx="1.5" fill="#ffd27a" fill-opacity="0.77"/>
+    <path d="M-20 700 Q150 650 320 720 T620 700 V800 H-20 Z" fill="#160a1c"/>
+    <path d="M70 300 Q35.5 530.0 81.5 783.0" stroke="#160a1c" stroke-width="18" fill="none" stroke-linecap="round"/><path d="M70 300 Q10 248 -50 312 Q-20 296 70 307 Z" fill="#160a1c"/><path d="M70 300 Q41 206 12 283 Q26 261 70 307 Z" fill="#160a1c"/><path d="M70 300 Q82 198 94 278 Q88 254 70 307 Z" fill="#160a1c"/><path d="M70 300 Q119 227 168 297 Q143 278 70 307 Z" fill="#160a1c"/><path d="M70 300 Q137 273 203 328 Q170 317 70 307 Z" fill="#160a1c"/><path d="M70 300 Q135 335 200 370 Q167 369 70 307 Z" fill="#160a1c"/><path d="M560 360 Q588.5 550.0 550.5 759.0" stroke="#160a1c" stroke-width="15" fill="none" stroke-linecap="round"/><path d="M560 360 Q609 317 659 370 Q634 357 560 366 Z" fill="#160a1c"/><path d="M560 360 Q584 283 608 346 Q596 328 560 366 Z" fill="#160a1c"/><path d="M560 360 Q550 276 540 342 Q545 322 560 366 Z" fill="#160a1c"/><path d="M560 360 Q520 300 479 358 Q500 342 560 366 Z" fill="#160a1c"/><path d="M560 360 Q505 338 450 383 Q477 374 560 366 Z" fill="#160a1c"/><path d="M560 360 Q506 389 453 417 Q480 417 560 366 Z" fill="#160a1c"/>
+<rect y="336" width="600" height="464" fill="url(#escuro)"/>
+<rect x="44" y="552" width="56" height="6" rx="3" fill="#f08a24"/>
+<text x="44" y="638" font-family="Inter" font-weight="900" font-size="64" fill="#fff" letter-spacing="-1">CRASH</text><text x="44" y="708" font-family="Inter" font-weight="900" font-size="64" fill="#fff" letter-spacing="-1">BANDICOOT</text>
+<text x="46" y="748" font-family="Inter" font-weight="600" font-size="22" fill="#ffffff" fill-opacity="0.72" letter-spacing="0.5">PlayStation 1  ·  PCSX-ReARMed</text>
+<g transform="translate(36,36)">
+  <rect width="149" height="38" rx="19" fill="#05060c" fill-opacity="0.55" stroke="#fff" stroke-opacity="0.25"/>
+  <text x="17" y="25" font-family="Inter" font-weight="700" font-size="16" fill="#fff" letter-spacing="1.6">PLATAFORMA</text>
+</g>
+<g transform="translate(504,36)" opacity="0.9">
+  <rect width="60" height="38" rx="10" fill="#05060c" fill-opacity="0.55" stroke="#fff" stroke-opacity="0.25"/>
+  <text x="30" y="26" text-anchor="middle" font-family="Inter" font-weight="900" font-size="17" fill="#fff" letter-spacing="1">CCS</text>
+</g>
+</g>
+<rect x="1" y="1" width="598" height="798" rx="25" fill="none" stroke="#fff" stroke-opacity="0.14" stroke-width="2"/>
+</svg>

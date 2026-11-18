@@ -49,6 +49,10 @@ def ler_jogos():
                     "motor": campos[2],
                     "cor": campos[3],
                     "sigla": campos[4],
+                    "genero": campos[6] if len(campos) > 6 else "",
+                    "descricao": campos[7] if len(campos) > 7 else "",
+                    "capa": f"/static/arte/{campos[0]}.png"
+                    if os.path.exists(os.path.join(app.static_folder, "arte", f"{campos[0]}.png")) else None,
                 })
     except FileNotFoundError:
         pass

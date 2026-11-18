@@ -25,15 +25,29 @@ function desenharJogos() {
     const card = document.createElement("article");
     card.className = "jogo";
     card.dataset.id = j.id;
-    const capa = document.createElement("div");
-    capa.className = "capa";
-    capa.textContent = j.sigla;
-    capa.style.background = `linear-gradient(${j.cor}, ${escurecer(j.cor)})`;
+    let capa;
+    if (j.capa) {
+      capa = document.createElement("img");
+      capa.className = "capa";
+      capa.src = j.capa;
+      capa.alt = j.nome;
+      capa.loading = "lazy";
+    } else {
+      capa = document.createElement("div");
+      capa.className = "capa";
+      capa.textContent = j.sigla;
+      capa.style.background = `linear-gradient(${j.cor}, ${escurecer(j.cor)})`;
+    }
     const info = document.createElement("div");
     info.className = "info";
-    info.innerHTML = '<div class="nome"></div><div class="motor"></div>';
+    info.innerHTML = '<span class="genero"></span><div class="nome"></div><div class="motor"></div><div class="desc"></div>';
+    const genero = info.querySelector(".genero");
+    genero.textContent = j.genero;
+    genero.style.background = j.cor;
+    genero.hidden = !j.genero;
     info.querySelector(".nome").textContent = j.nome;
     info.querySelector(".motor").textContent = j.motor;
+    info.querySelector(".desc").textContent = j.descricao;
     const btn = document.createElement("button");
     btn.textContent = "Jogar na TV";
     btn.addEventListener("click", () => pedir(`/api/jogar/${encodeURIComponent(j.id)}`));
@@ -59,6 +73,10 @@ function atualizarTela() {
   const jogando = status.estado === "jogando";
   estadoEl.textContent = jogando ? `Jogando: ${status.nome}` : textos[status.estado] || "--";
   tvEl.classList.toggle("jogando", jogando);
+  const tvCapa = document.getElementById("tv-capa");
+  const atual = jogos.find(j => j.id === status.jogo);
+  tvCapa.hidden = !(jogando && atual && atual.capa);
+  if (!tvCapa.hidden) tvCapa.src = atual.capa;
   pararBtn.hidden = !jogando;
   for (const card of grade.children) {
     card.classList.toggle("ativo", jogando && card.dataset.id === status.jogo);

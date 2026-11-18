@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+<defs>
+  <linearGradient id="escuro" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#000" stop-opacity="0"/>
+    <stop offset="0.55" stop-color="#05060c" stop-opacity="0.35"/>
+    <stop offset="1" stop-color="#05060c" stop-opacity="0.96"/>
+  </linearGradient>
+  <filter id="blur8"><feGaussianBlur stdDeviation="8"/></filter>
+  <filter id="blur20"><feGaussianBlur stdDeviation="20"/></filter>
+  <filter id="blur3"><feGaussianBlur stdDeviation="3"/></filter>
+  <clipPath id="canto"><rect width="600" height="800" rx="26"/></clipPath>
+</defs>
+<g clip-path="url(#canto)">
+<defs><linearGradient id="ceu2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f8fff"/><stop offset="0.7" stop-color="#8fdcff"/><stop offset="1" stop-color="#d9f6ff"/></linearGradient></defs>
+    <rect width="600" height="800" fill="url(#ceu2)"/>
+    <circle cx="470" cy="150" r="70" fill="#fff6c2" fill-opacity="0.9"/><circle cx="470" cy="150" r="130" fill="#fff6c2" fill-opacity="0.35" filter="url(#blur20)"/>
+    <g transform="translate(120,150) scale(1.1)" fill="#fff"><ellipse cx="0" cy="0" rx="70" ry="30"/><circle cx="-30" cy="-14" r="30"/><circle cx="18" cy="-26" r="38"/><circle cx="52" cy="-6" r="26"/></g><g transform="translate(420,300) scale(0.8)" fill="#fff"><ellipse cx="0" cy="0" rx="70" ry="30"/><circle cx="-30" cy="-14" r="30"/><circle cx="18" cy="-26" r="38"/><circle cx="52" cy="-6" r="26"/></g><g transform="translate(250,420) scale(0.6)" fill="#fff"><ellipse cx="0" cy="0" rx="70" ry="30"/><circle cx="-30" cy="-14" r="30"/><circle cx="18" cy="-26" r="38"/><circle cx="52" cy="-6" r="26"/></g>
+    <path d="M-20 640 Q120 520 260 610 T620 590 V800 H-20 Z" fill="#43c15e"/>
+    <path d="M-20 690 Q160 600 330 680 T620 660 V800 H-20 Z" fill="#2fa64a"/>
+    <path d="M75.0 330 Q160 483.0 245.0 330 Z" fill="#8a5a2b"/><path d="M75.0 330 Q160 423.5 245.0 330 Z" fill="#a8703a"/><rect x="69.0" y="314" width="182" height="26" rx="13" fill="#3cc25a"/><rect x="69.0" y="314" width="182" height="10" rx="5" fill="#79e07f"/><rect x="93.48316123913176" y="270" width="8" height="46" fill="#7a4a22"/><circle cx="97.48316123913176" cy="260" r="26" fill="#2fae4e"/><circle cx="89.48316123913176" cy="252" r="12" fill="#5fd36d"/><rect x="161.55893979099574" y="270" width="8" height="46" fill="#7a4a22"/><circle cx="165.55893979099574" cy="260" r="26" fill="#2fae4e"/><circle cx="157.55893979099574" cy="252" r="12" fill="#5fd36d"/><path d="M375.0 470 Q450 605.0 525.0 470 Z" fill="#8a5a2b"/><path d="M375.0 470 Q450 552.5 525.0 470 Z" fill="#a8703a"/><rect x="369.0" y="454" width="162" height="26" rx="13" fill="#3cc25a"/><rect x="369.0" y="454" width="162" height="10" rx="5" fill="#79e07f"/><rect x="403.29654835022797" y="410" width="8" height="46" fill="#7a4a22"/><circle cx="407.29654835022797" cy="400" r="26" fill="#2fae4e"/><circle cx="399.29654835022797" cy="392" r="12" fill="#5fd36d"/><path d="M245.0 560 Q300 659.0 355.0 560 Z" fill="#8a5a2b"/><path d="M245.0 560 Q300 620.5 355.0 560 Z" fill="#a8703a"/><rect x="239.0" y="544" width="122" height="26" rx="13" fill="#3cc25a"/><rect x="239.0" y="544" width="122" height="10" rx="5" fill="#79e07f"/>
+    
+<rect y="336" width="600" height="464" fill="url(#escuro)"/>
+<rect x="44" y="552" width="56" height="6" rx="3" fill="#e23b3b"/>
+<text x="44" y="638" font-family="Inter" font-weight="900" font-size="64" fill="#fff" letter-spacing="-1">SUPER</text><text x="44" y="708" font-family="Inter" font-weight="900" font-size="64" fill="#fff" letter-spacing="-1">MARIO 64</text>
+<text x="46" y="748" font-family="Inter" font-weight="600" font-size="22" fill="#ffffff" fill-opacity="0.72" letter-spacing="0.5">sm64ex  ·  OpenGL</text>
+<g transform="translate(36,36)">
+  <rect width="184" height="38" rx="19" fill="#05060c" fill-opacity="0.55" stroke="#fff" stroke-opacity="0.25"/>
+  <text x="17" y="25" font-family="Inter" font-weight="700" font-size="16" fill="#fff" letter-spacing="1.6">PLATAFORMA 3D</text>
+</g>
+<g transform="translate(504,36)" opacity="0.9">
+  <rect width="60" height="38" rx="10" fill="#05060c" fill-opacity="0.55" stroke="#fff" stroke-opacity="0.25"/>
+  <text x="30" y="26" text-anchor="middle" font-family="Inter" font-weight="900" font-size="17" fill="#fff" letter-spacing="1">CCS</text>
+</g>
+</g>
+<rect x="1" y="1" width="598" height="798" rx="25" fill="none" stroke="#fff" stroke-opacity="0.14" stroke-width="2"/>
+</svg>
