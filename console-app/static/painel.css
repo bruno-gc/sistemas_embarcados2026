@@ -1,0 +1,64 @@
+:root {
+  --fundo: #0b0d18;
+  --card: #181c2c;
+  --borda: #343a54;
+  --texto: #f0f3fa;
+  --fraco: #969fb9;
+  --azul: #4a7dff;
+  --perigo: #e0483e;
+  --aviso: #ffc440;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: linear-gradient(#10131f, #06070e) fixed;
+  color: var(--texto);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+}
+header, main, footer { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+header {
+  display: flex; flex-wrap: wrap; gap: 8px 24px;
+  justify-content: space-between; align-items: baseline;
+  padding-top: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--borda);
+}
+.marca { font-size: 1.5rem; font-weight: 700; }
+.sigla { color: var(--azul); font-size: 2.2rem; margin-right: 6px; }
+.sistema { color: var(--fraco); font-size: .9rem; }
+.rotulo { color: var(--fraco); font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; }
+.estado { font-size: 1.4rem; font-weight: 700; margin-top: 4px; }
+.tv, .sensor {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  margin: 24px 0 16px; padding: 18px 20px;
+  background: var(--card); border: 1px solid var(--borda); border-radius: 10px;
+}
+.tv.jogando { border-color: var(--azul); }
+.aviso {
+  margin: 0 0 16px; padding: 12px 16px; border-radius: 8px;
+  background: #3a2f10; color: var(--aviso); border: 1px solid #6a5418;
+}
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.jogo {
+  background: var(--card); border: 1px solid var(--borda); border-radius: 10px;
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.jogo .capa {
+  height: 110px; display: grid; place-items: center;
+  font-size: 3rem; font-weight: 800; letter-spacing: .02em;
+}
+.jogo .info { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.jogo .nome { font-weight: 700; font-size: 1.05rem; }
+.jogo .motor { color: var(--fraco); font-size: .9rem; flex: 1; }
+.jogo.ativo { border-color: var(--azul); box-shadow: 0 0 0 2px var(--azul); }
+button {
+  margin-top: 10px; padding: 10px 14px; border: 0; border-radius: 8px;
+  background: var(--azul); color: white; font-weight: 700; font-size: .95rem; cursor: pointer;
+}
+button:disabled { background: #2a3048; color: var(--fraco); cursor: not-allowed; }
+button.perigo { background: var(--perigo); margin-top: 0; }
+footer { color: var(--fraco); font-size: .85rem; padding-top: 24px; padding-bottom: 32px; }
+@media (max-width: 520px) {
+  .tv { flex-direction: column; align-items: stretch; }
+}
