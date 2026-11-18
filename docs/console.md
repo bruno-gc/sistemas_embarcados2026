@@ -75,6 +75,8 @@ O login em texto continua no vt1: `Ctrl+Alt+F1` mostra o terminal e `Ctrl+Alt+F2
 
 O painel web também tem o botão **Encerrar jogo**.
 
+No controle de PS5 (DualSense), o A é o **X**, o B é o **Círculo**, o Select é o **Create** e o Start é o **Options**. Ligue o controle por **cabo USB-C** em qualquer porta USB da Raspberry. A imagem não tem Bluetooth, e o kernel já traz o driver `hid-playstation`, que o eudev carrega sozinho.
+
 O menu reconhece controles com mapeamento no SDL, como Xbox, PlayStation, 8BitDo e muitos genéricos, porque usa a base `gamecontrollerdb.txt` que vem com o Zelda. Controles sem mapeamento também funcionam no menu: o direcional e os botões 0–3 confirmam, o 8 é Select e o 9 é Start. Dentro de cada jogo, quem lê o controle é o próprio motor:
 
 | Jogo | Controle |

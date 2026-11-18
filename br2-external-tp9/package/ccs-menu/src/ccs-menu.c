@@ -558,7 +558,7 @@ static void desenhar_info(void)
 	nove(tx_painel, bx, by, bw, bh, bh / 2, BRANCO, 250);
 	triangulo_play(bx + px(62), by + bh / 2, px(18), j->cor);
 	texto(F_BOTAO, "JOGAR", bx + px(96), by + (bh - altura(F_BOTAO)) / 2, (SDL_Color){ 12, 14, 26, 255 }, 255, 0);
-	texto(F_DICA, "Enter  ·  A", bx + bw / 2, by + bh + px(14), FRACO, 255, 1);
+	texto(F_DICA, "Enter  ·  X no controle", bx + bw / 2, by + bh + px(14), FRACO, 255, 1);
 }
 
 static void desenhar_rodape(void)
@@ -570,7 +570,7 @@ static void desenhar_rodape(void)
 	x += dica(x, y, "←", "→", "Escolher") + px(40);
 	x += dica(x, y, "Enter", NULL, "Jogar") + px(40);
 	x += dica(x, y, "Esc", NULL, "Terminal") + px(40);
-	texto(F_DICA, "No jogo: Select + Start (2 s) volta ao menu", x, y + (altura(F_CHIP) + px(8) - altura(F_DICA)) / 2, FRACO, 160, 0);
+	texto(F_DICA, "No jogo: Create + Options (2 s) volta ao menu", x, y + (altura(F_CHIP) + px(8) - altura(F_DICA)) / 2, FRACO, 160, 0);
 
 	char ip[64], linha[160];
 	endereco_ip(ip, sizeof ip);
