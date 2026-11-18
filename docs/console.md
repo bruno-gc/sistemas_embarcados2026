@@ -19,6 +19,14 @@ Os jogos foram compilados por Wecton e entregues no `entrega_nino.zip`. Eles **n
 
 Para tirar um jogo do menu (por exemplo, o CS), basta comentar a linha dele em `br2-external-tp9/board/console/rootfs-overlay/etc/ccs/jogos.conf`.
 
+## Identidade visual
+
+O menu e o painel web usam arte **original do grupo**, desenhada em vetor por `br2-external-tp9/board/console/arte/gerar.py`: o logo e o emblema do CCS, uma capa por jogo, fundos desfocados e texturas de efeito. As capas não copiam capas, logos ou personagens oficiais, porque esse material tem direitos autorais e não pode ser redistribuído; cada uma traz uma cena que lembra o gênero do jogo. A fonte é a Inter (licença OFL, que permite redistribuição). Os PNGs gerados ficam em `rootfs-overlay/usr/share/ccs` e `console-app/static/arte`.
+
+Para mudar a arte, edite `capas.py` e rode `python3 gerar.py`. O script precisa de Playwright e Pillow e só roda na máquina de desenvolvimento.
+
+O menu é um carrossel de capas. O jogo escolhido fica maior, com uma aura pulsando na cor dele, o fundo da tela troca com fade e partículas sobem devagar. Embaixo aparecem o nome, o gênero, o motor, uma descrição curta e o botão **JOGAR**. No rodapé ficam as teclas e o endereço do painel web.
+
 ## Arquitetura
 
 ```
