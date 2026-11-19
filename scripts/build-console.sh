@@ -77,7 +77,26 @@ make -C "$BR_DIR" O="$OUTPUT" BR2_EXTERNAL="$EXTERNAL" "$DEFCONFIG"
 echo "==> 6/6 Compilacao (a primeira vez demora: X.org, Mesa, SDL2...)"
 # o menu e um pacote local: recompila sempre, para pegar as mudancas do repo
 make -C "$BR_DIR" O="$OUTPUT" ccs-menu-dirclean
+
+# Drivers do X compilados antes do xorg-lazy.mk ficam com BIND_NOW e nao
+# carregam ("undefined symbol" / "no screens found"): recompila esses pacotes.
+PACOTES_X="xserver_xorg-server xdriver_xf86-video-fbdev xdriver_xf86-input-evdev xdriver_xf86-input-libinput"
+MODESETTING="$OUTPUT/target/usr/lib/xorg/modules/drivers/modesetting_drv.so"
+bind_now() { readelf -d "$1" 2>/dev/null | grep -Eq 'BIND_NOW|FLAGS_1.*NOW'; }
+if [ -f "$MODESETTING" ] && bind_now "$MODESETTING"; then
+    echo "    drivers do X com BIND_NOW: recompilando com -z lazy"
+    for p in $PACOTES_X; do make -C "$BR_DIR" O="$OUTPUT" "$p-dirclean"; done
+fi
+
 make -C "$BR_DIR" O="$OUTPUT"
+
+for m in "$MODESETTING" "$OUTPUT/target/usr/lib/xorg/modules/drivers/fbdev_drv.so"; do
+    if bind_now "$m"; then
+        echo "ERRO: $m ainda tem BIND_NOW; o X nao vai subir na Pi."
+        exit 1
+    fi
+done
+echo "    drivers do X sem BIND_NOW (ok)"
 
 echo
 echo "Imagem pronta: $OUTPUT/images/sdcard.img ($(du -h "$OUTPUT/images/sdcard.img" | cut -f1))"

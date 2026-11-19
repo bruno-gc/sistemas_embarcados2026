@@ -127,3 +127,10 @@ curl -X POST http://127.0.0.1/api/parar        # fecha o jogo
 ip addr show wlan0                  # 192.168.50.1 (rede TP9-GRUPO01)
 cat /var/log/ccs-menu.log           # erros do X e do menu
 ```
+
+## Problemas conhecidos e correções
+
+- **"no screens found" no X (Pi 4)**: tinha duas causas.
+  1. O `card0` é o v3d, que só renderiza; a saída HDMI é o `card1` (vc4). O arquivo `/etc/X11/xorg.conf.d/99-vc4.conf` marca o vc4 como GPU principal.
+  2. O Buildroot linka tudo com RELRO completo (`-z now`), e os drivers do X (`modesetting`, `fbdev`) falhavam com "undefined symbol". O `br2-external-tp9/xorg-lazy.mk` adiciona `-Wl,-z,lazy` aos pacotes do X. O `build-console.sh` confere com `readelf` que os drivers não ficaram com BIND_NOW.
+- **Teclado**: o X usa o layout ABNT2 (`00-teclado-abnt2.conf`). O terminal (tty) continua em layout americano.
