@@ -134,3 +134,12 @@ cat /var/log/ccs-menu.log           # erros do X e do menu
   1. O `card0` é o v3d, que só renderiza; a saída HDMI é o `card1` (vc4). O arquivo `/etc/X11/xorg.conf.d/99-vc4.conf` marca o vc4 como GPU principal.
   2. O Buildroot linka tudo com RELRO completo (`-z now`), e os drivers do X (`modesetting`, `fbdev`) falhavam com "undefined symbol". O `br2-external-tp9/xorg-lazy.mk` adiciona `-Wl,-z,lazy` aos pacotes do X. O `build-console.sh` confere com `readelf` que os drivers não ficaram com BIND_NOW.
 - **Teclado**: o X usa o layout ABNT2 (`00-teclado-abnt2.conf`). O terminal (tty) continua em layout americano.
+
+## Imagem publicada (19/11/2026)
+
+Commit `7aa40d0` da branch `console-final`. A imagem está dividida em 4 partes de até 360 MB na pasta do Drive do grupo. No Windows, o `JUNTAR-PARTES.bat` junta as partes em `sdcard.img.gz`.
+
+| Arquivo | SHA-256 |
+| --- | --- |
+| `sdcard.img.gz` | `7722ae6aab8ce5d9c64cd042d618f35e097c4dcf693e558bb6fca5b605f504b0` |
+| `sdcard.img` | `7c8f76890c89752e7dcce5a1366645e78c359b2928c511c7067cade85611e7a8` |
