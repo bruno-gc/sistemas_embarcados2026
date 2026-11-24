@@ -21,7 +21,7 @@ sessao() {
 	done
 	while :; do
 		rm -f "$RUN/sair"
-		xinit /usr/bin/ccs-menu -- :0 -nolisten tcp -nocursor vt2 >>"$LOG" 2>&1
+		xinit /usr/bin/ccs-sessao -- :0 -nolisten tcp -nocursor vt2 >>"$LOG" 2>&1
 		[ -e "$RUN/sair" ] && break
 		sleep 3
 	done

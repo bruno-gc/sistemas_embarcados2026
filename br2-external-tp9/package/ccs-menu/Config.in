@@ -9,11 +9,17 @@ config BR2_PACKAGE_CCS_MENU
 	select BR2_PACKAGE_LIBPNG # capas e logo
 	select BR2_PACKAGE_JPEG # fundos
 	select BR2_PACKAGE_DEJAVU # fonte reserva (o menu usa a Inter)
+	select BR2_PACKAGE_XLIB_LIBX11 # ccs-wm
+	select BR2_PACKAGE_XLIB_LIBXRANDR # ccs-wm
+	select BR2_PACKAGE_XAPP_XRANDR # ccs-resolucao
 	help
 	  Menu grafico do CCS (Console Contra Sony): mostra os jogos
 	  de /etc/ccs/jogos.conf na HDMI e abre o escolhido. Aceita
 	  teclado e controle USB e atende pedidos do painel web
 	  (container Docker) por /run/ccs.
+
+	  Instala tambem o ccs-wm, um gerenciador de janelas minimo
+	  que poe os jogos em tela cheia.
 
 comment "ccs-menu precisa do X.org (BR2_PACKAGE_XORG7)"
 	depends on !BR2_PACKAGE_XORG7

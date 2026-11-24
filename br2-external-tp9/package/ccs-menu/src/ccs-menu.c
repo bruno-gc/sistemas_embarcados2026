@@ -35,9 +35,16 @@
 
 #define MAX_JOGOS 12
 #define CONF_PADRAO "/etc/ccs/jogos.conf"
+#define CONTROLES_PADRAO "/etc/ccs/controles.conf"
+#define MAX_TECLAS 10
 #define DIR_RUN "/run/ccs"
 #define DIR_ARTE "/usr/share/ccs"
 #define N_PARTICULAS 46
+
+typedef struct {
+	char tecla[32];
+	char acao[64];
+} Controle;
 
 typedef struct {
 	char id[32];
@@ -47,6 +54,9 @@ typedef struct {
 	char script[256];
 	char genero[48];
 	char descricao[256];
+	char resolucao[16]; /* "640x480": a TV muda para essa resolucao no jogo */
+	Controle teclas[MAX_TECLAS];
+	int nteclas;
 	SDL_Color cor;
 	SDL_Texture *capa, *fundo;
 } Jogo;
@@ -57,6 +67,7 @@ static int sel, sel_ant;
 static float pos;          /* posicao animada do carrossel */
 static Uint32 troca_ms;    /* hora da ultima troca de jogo (fade do fundo) */
 static int confirmar_saida;
+static int ver_controles;
 static char aviso[160];
 static Uint32 aviso_ate;
 
@@ -124,11 +135,11 @@ static void carregar_jogos(const char *arq)
 		return;
 	}
 	while (njogos < MAX_JOGOS && fgets(linha, sizeof linha, f)) {
-		char *p = trim(linha), *campo[8] = { 0 };
+		char *p = trim(linha), *campo[10] = { 0 };
 		int n = 0;
 		if (*p == '#' || *p == 0)
 			continue;
-		for (char *t = strtok(p, "|"); t && n < 8; t = strtok(NULL, "|"))
+		for (char *t = strtok(p, "|"); t && n < 10; t = strtok(NULL, "|"))
 			campo[n++] = trim(t);
 		if (n < 6)
 			continue;
@@ -142,7 +153,34 @@ static void carregar_jogos(const char *arq)
 		snprintf(j->script, sizeof j->script, "%s", campo[5]);
 		snprintf(j->genero, sizeof j->genero, "%s", n > 6 ? campo[6] : "");
 		snprintf(j->descricao, sizeof j->descricao, "%s", n > 7 ? campo[7] : "");
+		snprintf(j->resolucao, sizeof j->resolucao, "%s", n > 8 ? campo[8] : "");
 		njogos++;
+	}
+	fclose(f);
+}
+
+static int achar_jogo(const char *id);
+
+/* /etc/ccs/controles.conf: id|tecla|acao, na ordem em que aparecem na tela */
+static void carregar_controles(const char *arq)
+{
+	FILE *f = fopen(arq, "r");
+	char linha[256];
+	if (!f)
+		return;
+	while (fgets(linha, sizeof linha, f)) {
+		char *p = trim(linha), *campo[3] = { 0 };
+		int n = 0;
+		if (*p == '#' || *p == 0)
+			continue;
+		for (char *t = strtok(p, "|"); t && n < 3; t = strtok(NULL, "|"))
+			campo[n++] = trim(t);
+		int i = n == 3 ? achar_jogo(campo[0]) : -1;
+		if (i < 0 || jogos[i].nteclas >= MAX_TECLAS)
+			continue;
+		Controle *c = &jogos[i].teclas[jogos[i].nteclas++];
+		snprintf(c->tecla, sizeof c->tecla, "%s", campo[1]);
+		snprintf(c->acao, sizeof c->acao, "%s", campo[2]);
 	}
 	fclose(f);
 }
@@ -390,6 +428,40 @@ static int dica(int x, int y, const char *t1, const char *t2, const char *desc)
 	return w;
 }
 
+/* uma linha da lista de controles: teclas (separadas por "/") + acao */
+static int linha_controle(int x, int y, int col_acao, const Controle *c)
+{
+	char buf[32];
+	snprintf(buf, sizeof buf, "%s", c->tecla);
+	int cx = x;
+	for (char *t = strtok(buf, "/"); t; t = strtok(NULL, "/")) {
+		char *k = trim(t);
+		if (cx > x)
+			cx += px(8);
+		cx += tecla(cx, y, k);
+	}
+	int ty = y + (altura(F_CHIP) + px(8) - altura(F_TEXTO)) / 2;
+	texto(F_TEXTO, c->acao, (cx + px(18) > x + col_acao) ? cx + px(18) : x + col_acao, ty, BRANCO, 235, 0);
+	return altura(F_CHIP) + px(8);
+}
+
+/* lista de controles em uma ou duas colunas; devolve a altura usada */
+static int lista_controles(const Jogo *j, int x, int y, int w)
+{
+	if (!j->nteclas) {
+		texto(F_TEXTO, "Controles padrão do jogo", x, y, FRACO, 255, 0);
+		return altura(F_TEXTO);
+	}
+	int colunas = (j->nteclas > 5 && w > px(900)) ? 2 : 1;
+	int por_coluna = (j->nteclas + colunas - 1) / colunas;
+	int lw = w / colunas, passo = altura(F_CHIP) + px(22);
+	for (int i = 0; i < j->nteclas; i++) {
+		int c = i / por_coluna, l = i % por_coluna;
+		linha_controle(x + c * lw, y + l * passo, px(240), &j->teclas[i]);
+	}
+	return por_coluna * passo;
+}
+
 static void desenhar_fundo(void)
 {
 	retangulo(0, 0, W, H, FUNDO, 255);
@@ -569,6 +641,7 @@ static void desenhar_rodape(void)
 	int x = m;
 	x += dica(x, y, "←", "→", "Escolher") + px(40);
 	x += dica(x, y, "Enter", NULL, "Jogar") + px(40);
+	x += dica(x, y, "C", NULL, "Controles") + px(40);
 	x += dica(x, y, "Esc", NULL, "Terminal") + px(40);
 	texto(F_DICA, "No jogo: Create + Options (2 s) volta ao menu", x, y + (altura(F_CHIP) + px(8) - altura(F_DICA)) / 2, FRACO, 160, 0);
 
@@ -616,6 +689,26 @@ static void desenhar_confirmacao(void)
 	texto(F_META, "Sair  (Enter)", xs + w2 / 2, y2 + (h2 - altura(F_META)) / 2, BRANCO, 255, 1);
 }
 
+static void desenhar_controles(void)
+{
+	Jogo *j = &jogos[sel];
+	retangulo(0, 0, W, H, FUNDO, 215);
+	int colunas = (j->nteclas > 5) ? 2 : 1;
+	int linhas = j->nteclas ? (j->nteclas + colunas - 1) / colunas : 1;
+	int bw = colunas == 2 ? px(1320) : px(820);
+	int bh = px(200) + linhas * (altura(F_CHIP) + px(22)) + px(60);
+	int bx = (W - bw) / 2, by = (H - bh) / 2;
+	nove(tx_painel, bx, by, bw, bh, px(28), (SDL_Color){ 20, 23, 38, 255 }, 250);
+	nove(tx_borda, bx, by, bw, bh, px(28), j->cor, 120);
+	char t[96];
+	snprintf(t, sizeof t, "Controles · %s", j->nome);
+	texto(F_RELOGIO, t, bx + px(56), by + px(44), BRANCO, 255, 0);
+	texto(F_DICA, "Teclado  ·  no controle de PS5 os botões seguem o padrão do jogo", bx + px(56),
+	      by + px(44) + altura(F_RELOGIO) + px(8), FRACO, 255, 0);
+	lista_controles(j, bx + px(56), by + px(170), bw - px(112));
+	texto(F_DICA, "C / Triângulo / Esc: fechar      Enter: jogar", W / 2, by + bh - px(50), FRACO, 255, 1);
+}
+
 static void desenhar(float dt)
 {
 	Uint32 agora = SDL_GetTicks();
@@ -638,23 +731,27 @@ static void desenhar(float dt)
 	desenhar_info();
 	desenhar_rodape();
 	desenhar_aviso();
+	if (ver_controles && !confirmar_saida)
+		desenhar_controles();
 	if (confirmar_saida)
 		desenhar_confirmacao();
 	SDL_RenderPresent(ren);
 }
 
+/* tela "Abrindo X": capa + controles do jogo, por uns 4 s (Enter/A pula) */
 static void tela_carregando(Jogo *j)
 {
-	for (int quadro = 0; quadro <= 24; quadro++) {
-		float t = quadro / 24.0f;
+	const int quadros = 160; /* 160 x 25 ms = 4 s */
+	for (int quadro = 0; quadro <= quadros; quadro++) {
+		float t = (float)quadro / quadros;
 		SDL_Rect tela = { 0, 0, W, H };
 		retangulo(0, 0, W, H, FUNDO, 255);
 		if (j->fundo) {
 			SDL_SetTextureAlphaMod(j->fundo, 255);
 			SDL_RenderCopy(ren, j->fundo, NULL, &tela);
 		}
-		retangulo(0, 0, W, H, FUNDO, 110);
-		int w = px(330), h = w * 4 / 3, x = W / 2 - w / 2, y = H / 2 - h / 2 - px(70);
+		retangulo(0, 0, W, H, FUNDO, 150);
+		int w = px(360), h = w * 4 / 3, x = px(170), y = (H - h) / 2 - px(30);
 		if (tx_brilho) {
 			SDL_Rect g = { x - w / 4, y - h / 5, w + w / 2, h + h * 2 / 5 };
 			SDL_SetTextureBlendMode(tx_brilho, SDL_BLENDMODE_ADD);
@@ -667,13 +764,38 @@ static void tela_carregando(Jogo *j)
 			SDL_SetTextureAlphaMod(j->capa, 255);
 			SDL_RenderCopy(ren, j->capa, NULL, &r);
 		}
+		int px0 = x + w + px(110), pw = W - px0 - px(130), py = y + px(10);
 		char msg[96];
 		snprintf(msg, sizeof msg, "Abrindo %s", j->nome);
-		texto(F_RELOGIO, msg, W / 2, y + h + px(50), BRANCO, 255, 1);
-		int bw = px(420), bx = W / 2 - bw / 2, by = y + h + px(50) + altura(F_RELOGIO) + px(26);
+		texto(F_TITULO, msg, px0, py, BRANCO, 255, 0);
+		py += altura(F_TITULO) + px(30);
+		texto(F_META, "CONTROLES", px0, py, j->cor, 255, 0);
+		py += altura(F_META) + px(22);
+		py += lista_controles(j, px0, py, pw) + px(30);
+		texto(F_DICA, "No jogo: Create + Options (2 s) no controle volta ao menu", px0, py, FRACO, 255, 0);
+
+		int bw = px(520), bx = px0, by = y + h - px(8);
 		nove(tx_painel, bx, by, bw, px(8), px(4), BRANCO, 40);
-		nove(tx_painel, bx, by, (int)(bw * (0.1f + 0.9f * t)), px(8), px(4), j->cor, 255);
+		nove(tx_painel, bx, by, (int)(bw * (0.05f + 0.95f * t)), px(8), px(4), j->cor, 255);
+		texto(F_DICA, "Enter pula", bx + bw + px(24), by - px(10), FRACO, 200, 0);
 		SDL_RenderPresent(ren);
+
+		SDL_Event e;
+		int pular = 0;
+		while (SDL_PollEvent(&e)) {
+			if (quadro < 20)
+				continue; /* ignora o Enter que abriu o jogo */
+			if (e.type == SDL_KEYDOWN && (e.key.keysym.sym == SDLK_RETURN || e.key.keysym.sym == SDLK_KP_ENTER ||
+						      e.key.keysym.sym == SDLK_SPACE))
+				pular = 1;
+			if (e.type == SDL_CONTROLLERBUTTONDOWN && (e.cbutton.button == SDL_CONTROLLER_BUTTON_A ||
+								  e.cbutton.button == SDL_CONTROLLER_BUTTON_START))
+				pular = 1;
+			if (e.type == SDL_JOYBUTTONDOWN)
+				pular = 1;
+		}
+		if (pular)
+			break;
 		SDL_Delay(25);
 	}
 }
@@ -872,6 +994,13 @@ static void jogar(int i)
 	fechar_janela();
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 
+	if (j->resolucao[0]) {
+		char cmd[96];
+		snprintf(cmd, sizeof cmd, "/usr/bin/ccs-resolucao %s", j->resolucao);
+		if (system(cmd) != 0)
+			fprintf(stderr, "ccs-menu: nao mudou a resolucao para %s\n", j->resolucao);
+	}
+
 	escrever_status("jogando", j);
 	pid_t pid = fork();
 	if (pid == 0) {
@@ -908,6 +1037,8 @@ static void jogar(int i)
 		}
 	}
 	escrever_status("menu", NULL);
+	if (j->resolucao[0] && system("/usr/bin/ccs-resolucao") != 0)
+		fprintf(stderr, "ccs-menu: nao voltou a resolucao\n");
 
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
 	if (abrir_janela() != 0) {
@@ -937,11 +1068,19 @@ static int acao(int k)
 	case SDLK_KP_ENTER:
 		if (confirmar_saida)
 			return 1;
+		ver_controles = 0;
 		if (njogos)
 			jogar(sel);
 		break;
+	case SDLK_c:
+		if (!confirmar_saida && njogos)
+			ver_controles = !ver_controles;
+		break;
 	case SDLK_ESCAPE:
-		confirmar_saida = !confirmar_saida;
+		if (ver_controles)
+			ver_controles = 0;
+		else
+			confirmar_saida = !confirmar_saida;
 		break;
 	}
 	return 0;
@@ -981,6 +1120,7 @@ int main(int argc, char **argv)
 	mkdir(dir_run, 0755);
 	srand((unsigned)time(NULL));
 	carregar_jogos(conf ? conf : CONF_PADRAO);
+	carregar_controles(getenv("CCS_CONTROLES_CONF") ? getenv("CCS_CONTROLES_CONF") : CONTROLES_PADRAO);
 	if (argc > 1 && njogos)
 		sel = sel_ant = atoi(argv[1]) % njogos;
 	pos = (float)sel;
@@ -1001,6 +1141,15 @@ int main(int argc, char **argv)
 		troca_ms = SDL_GetTicks() - 1000;
 		if (getenv("CCS_CONFIRMAR"))
 			confirmar_saida = 1;
+		if (getenv("CCS_VER_CONTROLES"))
+			ver_controles = 1;
+		if (getenv("CCS_CARREGANDO")) { /* testes: tela "Abrindo X" */
+			tela_carregando(&jogos[sel]);
+			SDL_Surface *s = SDL_CreateRGBSurfaceWithFormat(0, W, H, 32, SDL_PIXELFORMAT_ARGB8888);
+			SDL_RenderReadPixels(ren, NULL, SDL_PIXELFORMAT_ARGB8888, s->pixels, s->pitch);
+			SDL_SaveBMP(s, shot);
+			return 0;
+		}
 		if (getenv("CCS_AVISO"))
 			mostrar_aviso(getenv("CCS_AVISO"));
 		for (int q = 0; q < 3; q++)
@@ -1064,7 +1213,8 @@ int main(int argc, char **argv)
 				case SDL_CONTROLLER_BUTTON_A:
 				case SDL_CONTROLLER_BUTTON_START: k = SDLK_RETURN; break;
 				case SDL_CONTROLLER_BUTTON_BACK: k = SDLK_ESCAPE; break;
-				case SDL_CONTROLLER_BUTTON_B: if (confirmar_saida) k = SDLK_ESCAPE; break;
+				case SDL_CONTROLLER_BUTTON_B: if (confirmar_saida || ver_controles) k = SDLK_ESCAPE; break;
+				case SDL_CONTROLLER_BUTTON_Y: k = SDLK_c; break;
 				}
 			}
 			if (e.type == SDL_CONTROLLERAXISMOTION && e.caxis.axis == SDL_CONTROLLER_AXIS_LEFTX) {

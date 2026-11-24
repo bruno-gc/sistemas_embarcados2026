@@ -1,0 +1,13 @@
+#!/bin/sh
+# ccs-resolucao [LARGURAxALTURA] - muda a resolucao da HDMI (sem argumento:
+# volta para a resolucao nativa da TV). O menu usa para jogos que abrem numa
+# janela de tamanho fixo (ex.: o emulador de PS1 em 640x480): com a TV na
+# mesma resolucao, a janela ocupa a tela toda e o monitor amplia a imagem.
+SAIDA="$(xrandr 2>/dev/null | awk '/ connected/ { print $1; exit }')"
+[ -n "$SAIDA" ] || exit 0
+if [ -z "$1" ] || [ "$1" = auto ]; then
+	exec xrandr --output "$SAIDA" --auto
+fi
+xrandr --output "$SAIDA" --mode "$1" && exit 0
+echo "ccs-resolucao: a TV nao aceita $1, ficando na nativa" >&2
+exec xrandr --output "$SAIDA" --auto

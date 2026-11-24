@@ -24,4 +24,5 @@ if [ -d "$TARGET_DIR/opt/jogos" ]; then
 else
 	echo "post-build (console): AVISO - /opt/jogos nao existe (CCS_JOGOS_DIR vazio?)"
 fi
-chmod +x "$TARGET_DIR"/usr/bin/jogar-* "$TARGET_DIR/usr/bin/ccs-jogar"
+chmod +x "$TARGET_DIR"/usr/bin/jogar-* "$TARGET_DIR/usr/bin/ccs-jogar" \
+	"$TARGET_DIR/usr/bin/ccs-sessao" "$TARGET_DIR/usr/bin/ccs-resolucao"
