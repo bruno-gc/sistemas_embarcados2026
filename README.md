@@ -1,12 +1,10 @@
-# TP9 — Driver Linux + HC-SR04 + Docker + Wi-Fi AP + Flask
+# CCS — Console Contra Sony (projeto final)
 
 **Sistemas Embarcados · Raspberry Pi 4 · Grupo 01**
 
-Imagem Linux embarcada, gerada integralmente pelo Buildroot para a Raspberry Pi 4, que mede distância com o sensor ultrassônico HC-SR04. Um driver de kernel próprio (`hcsr04.ko`) cria o dispositivo `/dev/hcsr04`. A Raspberry cria a própria rede Wi-Fi, `TP9-GRUPO01`, e um container Docker com Python + Flask mostra a distância em tempo real em `http://192.168.50.1`.
+Imagem Linux embarcada, gerada integralmente pelo Buildroot para a Raspberry Pi 4, que transforma a placa num **console de videogame**. Ao ligar, a TV mostra um menu gráfico com 6 jogos compilados para ARM64. Cada jogo abre em tela cheia, com as teclas no padrão dos jogos de PC, e segurar **Home** por 1 segundo volta ao menu. Um **painel web** em Flask, dentro de um container Docker, mostra o que está na TV e abre ou encerra jogos pelo celular, em `http://192.168.50.1`.
 
-Tudo sobe sozinho no boot, sem nenhum comando manual e sem depender de Internet.
-
-> **Projeto final — CCS (Console Contra Sony):** a branch `console-final` traz a imagem do console, com menu gráfico na HDMI, 6 jogos e painel web no Docker. Ela é gerada por `scripts/build-console.sh` e documentada em [docs/console.md](docs/console.md). O restante deste README descreve o TP9.
+Tudo sobe sozinho no boot, sem nenhum comando manual e sem depender de Internet. A imagem mantém o que foi entregue no TP9: driver `hcsr04.ko`, rede Wi-Fi `TP9-GRUPO01` e Docker.
 
 ---
 
@@ -17,259 +15,178 @@ Tudo sobe sozinho no boot, sem nenhum comando manual e sem depender de Internet.
 | Disciplina | Sistemas Embarcados |
 | Professor | Sergio Schina |
 | Versão do Buildroot | **2026.02.3** |
-| Hardware | Raspberry Pi 4 Model B, sensor HC-SR04, 3 resistores de 1 kΩ, microSD de 8 GB ou mais |
-| SSID | `TP9-GRUPO01` |
-| URL da aplicação | `http://192.168.50.1` |
-| Versão entregue | tag `tp9-final` (arquivo `VERSION` = 1.0) |
+| Hardware | Raspberry Pi 4 Model B, TV ou monitor HDMI, teclado e mouse USB, controle de PS5 (cabo USB-C), microSD de 8 GB ou mais |
+| Hostname | `ccs-console` |
+| SSID | `TP9-GRUPO01` (senha `embarcados2026`) |
+| URL do painel | `http://192.168.50.1` |
+| Branch | `console-final` |
+| Versão entregue | tag `ccs-final` |
 
 ### Integrantes
 
 | Nome | RA | Responsabilidade |
 | --- | --- | --- |
-| Vinicius Alves Santana | 232710 | Buildroot, integração do driver, scripts de boot, build, imagem e README |
-| Bruno Garcia Carvalho | 226790 | Wi-Fi AP (hostapd e dnsmasq), hardware, testes e evidências |
-| Matheus Correia Caumo | 232577 | Backend Flask, dashboard e container Docker |
-| Wecton | 228550 | Driver HC-SR04, Device Tree overlay e arquitetura |
+| Vinicius Alves Santana | 232710 | Buildroot, menu (`ccs-menu` e `ccs-wm`), painel web, scripts de boot e de build, imagem e documentação |
+| Bruno Garcia Carvalho | 226790 | Repositório, testes na Raspberry Pi, controle de PS5 e evidências |
+| Matheus Correia Caumo | 232577 | Painel web e container Docker (base do TP9), testes |
+| Wecton | 228550 | Compilação dos 6 jogos para ARM64 (`entrega_nino.zip`) |
 
 ---
 
 ## Resultado funcional
 
 1. A Raspberry Pi 4 inicia a partir da imagem gerada pelo Buildroot.
-2. O driver `hcsr04.ko` é carregado e cria `/dev/hcsr04`.
-3. O sensor usa o **GPIO23 como TRIG** e o **GPIO24 como ECHO**, este protegido por um divisor de tensão.
-4. A Raspberry cria a rede Wi-Fi `TP9-GRUPO01` em modo Access Point, com o IP `192.168.50.1`.
-5. O Docker Engine inicia automaticamente.
-6. O container `tp9-distance` inicia automaticamente e recebe acesso **somente** ao `/dev/hcsr04`.
-7. Um celular ou notebook conectado à rede abre `http://192.168.50.1` e vê a distância mudando conforme um objeto se aproxima ou se afasta.
-8. Depois de um reboot, tudo volta a funcionar sem comandos manuais.
+2. O X sobe no vt2, na saída HDMI, e abre o menu do console (`ccs-menu`).
+3. O menu mostra um carrossel com as capas dos 6 jogos. Teclado, mouse e controle USB funcionam.
+4. Ao escolher um jogo, aparece a tela "Abrindo…" com os controles dele, e o jogo abre em **tela cheia**.
+5. Segurar **Home** por 1 s (ou **Select + Start** por 2 s no controle) fecha o jogo e volta ao menu.
+6. A Raspberry cria a rede Wi-Fi `TP9-GRUPO01`, com o IP `192.168.50.1`.
+7. O Docker Engine inicia e sobe o container `ccs-console`, com o painel web na porta 80.
+8. Um celular conectado à rede abre `http://192.168.50.1`, vê o que está na TV e abre ou encerra jogos.
+9. Depois de um reboot, tudo volta a funcionar sem comandos manuais.
+
+---
+
+## Jogos
+
+| Jogo | Motor (ARM64) | Pasta na Raspberry | Atalho no terminal |
+| --- | --- | --- | --- |
+| Counter-Strike 1.6 | Xash3D FWGS | `/opt/jogos/cs16` | `jogar-cs` |
+| Super Mario 64 | sm64ex | `/opt/jogos/sm64` | `jogar-mario` |
+| Zelda: Ocarina of Time | Ship of Harkinian | `/opt/jogos/zelda` | `jogar-zelda` |
+| Crash Bandicoot | PCSX-ReARMed | `/opt/jogos/crash` | `jogar-crash` |
+| DOOM | Chocolate Doom | `/opt/jogos/doom` | `jogar-doom` |
+| Quake | QuakeSpasm | `/opt/jogos/quake` | `jogar-quake` |
+
+Os jogos **não ficam no GitHub**: são grandes (~1,9 GB) e incluem arquivos com direitos autorais (ROMs, BIOS, dados dos jogos). O `scripts/build-console.sh` usa a pasta dos jogos como mais um *rootfs overlay* no momento do build. Para tirar um jogo do menu (por exemplo, o CS), basta comentar a linha dele em `etc/ccs/jogos.conf`.
 
 ---
 
 ## Arquitetura
 
-![Arquitetura do sistema](docs/imagens/arquitetura.png)
-
 ```
-Celular / notebook (rede TP9-GRUPO01)
-        │  HTTP, porta 80
-        ▼
-Raspberry Pi 4 — 192.168.50.1 (wlan0)
-        │
-        ├── hostapd + dnsmasq ─────────── Wi-Fi Access Point e DHCP
-        │
-        ├── Docker Engine
-        │      └── container tp9-distance (-p 80:5000, --device=/dev/hcsr04)
-        │             ├── GET /              → dashboard
-        │             └── GET /api/distance  → {"distance_mm", "distance_cm"}
-        │
-        └── /dev/hcsr04
-               ▲
-        driver hcsr04.ko (kernel)
-               │
-        GPIO23 (TRIG)  /  GPIO24 (ECHO, via divisor)
-               │
-            HC-SR04
+TV (HDMI)                                     Celular / notebook (TP9-GRUPO01)
+   ▲                                                 │ http://192.168.50.1
+   │                                                 ▼
+Xorg (vt2) ── ccs-wm (janelas em tela cheia)    Container ccs-console
+   │                                             (Flask :5000, -p 80:5000)
+   └── ccs-menu (SDL2) ◄──── /run/ccs ────────►  -v /run/ccs  -v /etc/ccs:ro
+          │  status · pedido · sair
+          │ fork + exec
+          ▼
+   ccs-preparar → /opt/jogos/<jogo>/start.sh → ccs-restaurar
+   (resolução e teclas do jogo)                 (volta ao padrão)
 ```
 
-A aplicação no container **não acessa GPIO nem registradores**. A única interface entre a aplicação e o hardware é o `/dev/hcsr04`, criado pelo driver.
+O menu e o painel conversam só por arquivos em `/run/ccs` (tmpfs):
 
-Detalhes em [docs/arquitetura.md](docs/arquitetura.md).
+| Arquivo | Quem escreve | Conteúdo |
+| --- | --- | --- |
+| `/run/ccs/status` | menu | `{"estado": "menu"/"jogando"/"terminal", "jogo": ..., "nome": ...}` |
+| `/run/ccs/pedido` | painel web, `jogar-*` ou `ccs-wm` | `jogar <id>` ou `parar` |
+| `/run/ccs/sair` | menu | criado quando o usuário escolhe "Sair para o terminal" |
+
+O container **não usa `--privileged`**: recebe só a lista de jogos (somente leitura), a pasta `/run/ccs` e, se existir, o `/dev/hcsr04`.
 
 ---
 
-## Hardware e esquema elétrico
+## O menu e o gerenciador de janelas
 
-| HC-SR04 | Função | Raspberry Pi 4 | Pino físico |
-| --- | --- | --- | --- |
-| VCC | Alimentação | 5 V | 2 |
-| TRIG | Saída de trigger | GPIO23 (BCM) | 16 |
-| ECHO | Entrada de echo | GPIO24 (BCM), via divisor | 18 |
-| GND | Terra | GND | 6 |
+**`ccs-menu`** (C, SDL2 + SDL2_ttf, pacote próprio em `br2-external-tp9/package/ccs-menu`):
 
-### Proteção do GPIO24
+- lê a lista de jogos de `/etc/ccs/jogos.conf` e os controles de `/etc/ccs/controles.conf`;
+- desenha o carrossel: o jogo escolhido fica maior, com uma aura na cor dele, o fundo troca com fade e partículas sobem devagar;
+- a tecla **C** (Triângulo no controle) mostra os controles do jogo; a tela "Abrindo…" também mostra;
+- para jogar, roda `ccs-preparar` (resolução e teclas do jogo), faz `fork` + `exec` do `start.sh`, espera o jogo terminar e roda `ccs-restaurar`;
+- escreve o estado em `/run/ccs/status` e atende os pedidos do painel em `/run/ccs/pedido`.
 
-O pino ECHO do HC-SR04 trabalha em 5 V, e a entrada GPIO da Raspberry Pi 4 aceita 3,3 V. Por isso o ECHO passa por um divisor resistivo. Os 2 kΩ são dois resistores de 1 kΩ em série:
+**`ccs-wm`** (C, Xlib, mesmo pacote): gerenciador de janelas mínimo. Coloca toda janela de jogo em tela cheia (`_NET_WM_STATE_FULLSCREEN`), dá o foco do teclado a ela, centraliza janelas de tamanho fixo e acompanha mudanças de resolução (RandR). Ele também captura a tecla **Home**: segurada por 1 s, escreve `parar` em `/run/ccs/pedido`, e o menu encerra o jogo.
 
-```
-HC-SR04 ECHO
-     │
-   [1 kΩ]
-     │
-     ├────────── GPIO24 (pino 18)
-     │
-   [1 kΩ]
-     │
-   [1 kΩ]
-     │
-    GND
+### Teclas no padrão de PC
 
-VGPIO = 5 V × 2k / (1k + 2k) ≈ 3,33 V
-```
-
-O TRIG não precisa de divisor: quem gera esse sinal é a Raspberry, em 3,3 V, e o HC-SR04 reconhece esse nível como alto.
-
-**Por que GPIO23 e GPIO24:** são os pinos padronizados pelo enunciado e são GPIOs de uso geral, sem função alternativa (UART, I²C ou SPI) ativa por padrão. Os pinos físicos 16 e 18 ficam próximos dos pinos de 5 V (2) e GND (6), o que simplifica a fiação.
-
-Foto da montagem e detalhes em [docs/hardware.md](docs/hardware.md).
-
----
-
-## Driver Linux (`hcsr04.ko`)
-
-### Interface
-
-```
-$ cat /dev/hcsr04
-374
-```
-
-Cada abertura do dispositivo faz **uma medição** e devolve a distância em **milímetros**, em texto. O valor 374 representa 37,4 cm.
-
-### Algoritmo
-
-1. O `read()` gera um pulso de 10 µs no TRIG.
-2. O HC-SR04 emite o ultrassom e mantém o ECHO em nível alto enquanto o som vai e volta.
-3. Uma IRQ na **borda de subida** do ECHO marca o instante `t0`.
-4. Uma IRQ na **borda de descida** marca `t1` e acorda o `read()`, que estava dormindo numa `completion`, sem busy-waiting.
-5. A distância é calculada por:
-
-```
-distância_mm = Δt_µs × 343 / 2000
-```
-
-O som percorre 343 m/s, ou 0,343 mm/µs. O tempo medido é de ida e volta, por isso a divisão por 2.
-
-### Robustez
-
-| Situação | Comportamento |
+| Ação | Teclas |
 | --- | --- |
-| Sem eco em 100 ms | `read()` devolve `-ETIMEDOUT` (sensor desligado ou mal ligado) |
-| Duas leituras ao mesmo tempo | um mutex serializa as medições |
-| Medições seguidas | o driver espera no mínimo 60 ms entre elas, como recomenda o datasheet |
-| Remoção do módulo | `remove()` desregistra o `/dev/hcsr04`; GPIOs e IRQ são liberados pelos recursos `devm_*` |
+| Andar | W/A/S/D (setas também) |
+| Pular / confirmar | Espaço |
+| Usar / interagir | E |
+| Atirar | Clique ou Ctrl |
+| Correr | Shift |
+| Pausa / menu | Enter / Esc |
+| Voltar ao menu do CCS | segurar **Home** por 1 s |
 
-### Device Tree
+Cada motor lê as teclas de um jeito, então a troca é feita por jogo: arquivos de configuração do DOOM (`chocolate-doom/default.cfg`), do Quake (`id1/autoexec.cfg`) e do Mario 64 (`sm64config.txt`); no Crash, que lê o teclado pelo nome das teclas, o `ccs-preparar` aplica um `xmodmap` e o `ccs-restaurar` desfaz. O Crash também roda em 640x480 (`ccs-resolucao`), e o monitor amplia a imagem.
 
-Os GPIOs são descritos por um overlay, `br2-external-tp9/board/rpi4/hcsr04-overlay.dts`. O código C não tem nenhum número de GPIO fixo.
+### Controle de PS5
 
-```dts
-hcsr04 {
-    compatible = "unisanta,hcsr04";
-    trig-gpios = <&gpio 23 GPIO_ACTIVE_HIGH>;
-    echo-gpios = <&gpio 24 GPIO_ACTIVE_HIGH>;
-};
-```
-
-O driver se associa ao nó pelo `compatible` e obtém os pinos com `devm_gpiod_get(dev, "trig", …)` e `devm_gpiod_get(dev, "echo", …)`, a API moderna de GPIO descriptors. O overlay é compilado para `hcsr04.dtbo`, gravado na partição de boot e carregado pelo firmware com a linha `dtoverlay=hcsr04` no `config.txt`.
-
-Detalhes em [docs/driver.md](docs/driver.md).
+Ligue por **cabo USB-C**. O kernel traz o driver `hid-playstation`, que o eudev carrega sozinho. No menu: D-pad escolhe, **X** joga, **Triângulo** mostra os controles e **Create + Options** por 2 s volta ao menu durante o jogo. Mario 64, Zelda, Crash e Quake leem o controle direto; o CS foi feito para teclado e mouse.
 
 ---
 
 ## Integração ao Buildroot
 
-O driver não é compilado à mão nem copiado para o cartão: ele é um **pacote próprio** dentro do `BR2_EXTERNAL`.
-
 ```
 br2-external-tp9/
-├── external.desc                  ← nome TP9 → $(BR2_EXTERNAL_TP9_PATH)
-├── Config.in                      ← inclui os pacotes do grupo
-├── external.mk                    ← inclui os .mk de package/
 ├── configs/
-│   └── tp9_raspberrypi4_defconfig ← configuração completa do projeto
+│   ├── tp9_raspberrypi4_defconfig          ← TP9
+│   └── ccs_console_raspberrypi4_defconfig  ← projeto final
+├── external.mk                             ← inclui os pacotes e o xorg-lazy.mk
+├── xorg-lazy.mk                            ← drivers do X com -z lazy
 ├── package/
-│   └── hcsr04-driver/
-│       ├── Config.in              ← BR2_PACKAGE_HCSR04_DRIVER
-│       ├── hcsr04-driver.mk       ← kernel-module + generic-package
-│       └── src/
-│           ├── Makefile           ← obj-m := hcsr04.o
-│           └── hcsr04.c
-└── board/rpi4/
-    ├── config.txt                 ← config.txt oficial + dtoverlay=hcsr04
-    ├── hcsr04-overlay.dts         ← Device Tree overlay
-    ├── hostapd.conf               ← Access Point
-    ├── dnsmasq.conf               ← DHCP e DNS
-    ├── post-build.sh              ← instala a configuração do Wi-Fi
-    ├── users.txt                  ← usuário criado no build
-    └── rootfs-overlay/
-        ├── etc/issue              ← mensagem de boas-vindas
-        └── etc/init.d/
-            ├── S30hcsr04          ← carrega o driver
-            ├── S40wifi-ap         ← sobe o Access Point
-            └── S99tp9-distance    ← sobe o container
+│   ├── hcsr04-driver/                      ← driver do TP9
+│   └── ccs-menu/                           ← ccs-menu.c e ccs-wm.c
+└── board/
+    ├── rpi4/                               ← Wi-Fi AP, usuários, overlay do TP9
+    └── console/
+        ├── config.txt                      ← vc4-kms-v3d, áudio, hdmi
+        ├── post-build.sh
+        ├── arte/                           ← gera logo, capas e fundos
+        └── rootfs-overlay/
+            ├── etc/ccs/                    ← jogos.conf, controles.conf, teclas/
+            ├── etc/X11/xorg.conf.d/        ← GPU vc4, teclado ABNT2
+            ├── etc/init.d/                 ← S95ccs-menu, S99ccs-console
+            └── usr/bin/                    ← ccs-sessao, ccs-preparar, jogar-*
 ```
 
-O `hcsr04-driver.mk` usa a infraestrutura `kernel-module`, que compila o `hcsr04.ko` contra o **mesmo kernel da imagem** e o instala no root filesystem. Um hook do mesmo pacote compila o `.dts` com o `dtc` do host e instala o `hcsr04.dtbo` entre os overlays da Raspberry Pi.
+Os rootfs overlays entram nesta ordem: `board/rpi4`, a pasta dos jogos (`CCS_JOGOS_DIR`) e `board/console`. Assim, os arquivos do grupo (por exemplo, o `start.sh` do CS e do Zelda) substituem os que vieram com os jogos.
 
-### Principais opções habilitadas
+### Pacotes adicionados em relação ao TP9
 
-| Área | Opção | Motivo |
-| --- | --- | --- |
-| Base | `raspberrypi4_64_defconfig` | configuração oficial da Raspberry Pi 4, 64 bits |
-| Sistema | hostname `ccs-console`, tabela de usuários, rootfs overlay | identidade e arquivos próprios do projeto |
-| Docker | `docker-engine`, `docker-cli`, `cgroupfs-v2-mount` | container da aplicação |
-| Wi-Fi | `hostapd`, `dnsmasq`, `iw`, `brcmfmac-sdio-firmware-rpi` (wifi) | Access Point com o Wi-Fi onboard |
-| Driver | `hcsr04-driver` (pacote do `BR2_EXTERNAL`) | driver e overlay do sensor |
-| Boot | `rpi-firmware` com `config.txt` próprio | carrega o overlay `hcsr04` |
-| Scripts | post-build do projeto | instala `hostapd.conf` e `dnsmasq.conf` |
-| Diagnóstico | `libcurl` com `curl binary` | testes locais |
-| Imagem | ext4 de 2 GB | Docker Engine e imagem da aplicação |
-| Kernel | configuração oficial bcm2711, sem fragmento | já traz `BRCMFMAC`, `CFG80211`, `CGROUP_BPF` e `BPF_SYSCALL` |
-
-Motivo, símbolo, dependências e impacto de cada decisão em [docs/buildroot.md](docs/buildroot.md).
-
----
-
-## Wi-Fi em modo Access Point
-
-| Parâmetro | Valor |
+| Pacote | Para quê |
 | --- | --- |
-| SSID | `TP9-GRUPO01` |
-| Segurança | WPA2-PSK, senha `embarcados2026` |
-| Interface | `wlan0` |
-| IP da Raspberry | `192.168.50.1/24` |
-| Faixa DHCP | `192.168.50.10` a `192.168.50.100`, lease de 12 h |
-| Gateway e DNS entregues | `192.168.50.1` |
-
-O `hostapd` cria o Access Point (driver `nl80211`, 802.11g, canal 6, `country_code=BR`). O `dnsmasq` atende somente a `wlan0` e distribui os endereços. O script `S40wifi-ap` faz tudo na ordem: carrega o `brcmfmac`, espera a `wlan0` existir, aplica o IP fixo, sobe o `hostapd` e, por último, o `dnsmasq`. Os scripts de init que os pacotes `dnsmasq` e `hostapd` instalariam são removidos no post-build, para os serviços não subirem duas vezes nem fora de ordem.
-
-Detalhes em [docs/wifi-ap.md](docs/wifi-ap.md).
+| `xorg7`, `xserver_xorg-server`, `xinit`, `xrandr`, `xmodmap`, `xf86-input-evdev/libinput`, `xf86-video-fbdev` | servidor gráfico, resolução e troca de teclas |
+| `mesa3d` (V3D, VC4, GBM, GLX, EGL, GLES) + `libglvnd` | OpenGL acelerado pela GPU da Raspberry Pi 4 |
+| `libxshmfence`, `libepoxy` | DRI3 e glamor: aceleração dentro do X |
+| `sdl2` (X11, KMS/DRM, OpenGL, GLES), `sdl2_ttf` | jogos e menu |
+| `alsa-utils`, `mpg123`, `pulseaudio` | áudio |
+| `bzip2`, `libogg`, `libvorbis` | bibliotecas exigidas pelo motor do CS (`libxash.so`) |
+| `eudev` | hotplug de teclado, mouse e controle |
+| `dejavu` | fonte reserva (o menu usa a Inter, licença OFL) |
+| `brcmfmac_sdio-firmware-rpi` (Wi-Fi) | firmware do Wi-Fi onboard |
+| `ccs-menu` (pacote do grupo) | menu e gerenciador de janelas |
 
 ---
 
-## Docker, backend e frontend
-
-### Execução do container
+## Docker e painel web
 
 ```bash
-docker run -d \
-  --name tp9-distance \
-  --device=/dev/hcsr04:/dev/hcsr04 \
+docker run -d --name ccs-console \
   -p 80:5000 \
+  -v /run/ccs:/run/ccs -v /etc/ccs:/etc/ccs:ro \
+  --device=/dev/hcsr04:/dev/hcsr04 \
   --restart unless-stopped \
-  tp9-distance:1.0
+  ccs-console:1.0
 ```
 
-- **`--device`** libera ao container só o `/dev/hcsr04`. O projeto **não usa `--privileged`**.
-- **`-p 80:5000`** publica a porta 80 da Raspberry na porta 5000 do container, onde o Flask escuta (`0.0.0.0`).
-- O container fica na rede bridge do Docker (`docker0`). O cliente nunca acessa o IP interno do container: o acesso chega pelo IP da Raspberry e é repassado pelo Docker.
-- A imagem `tp9-distance:1.0` (Python 3.12 slim, **arm64**) é exportada com `docker save` no build e carregada com `docker load` no primeiro boot, sem Internet.
+O `--device` só entra se o `/dev/hcsr04` existir (sensor do TP9 ligado). A imagem `ccs-console:1.0` (Python 3.12 slim, **arm64**) é gerada no build, exportada com `docker save` para `/opt/docker/ccs-console.tar` e carregada com `docker load` no primeiro boot, sem Internet.
 
-### API
-
-| Rota | Resposta |
+| Rota | O que faz |
 | --- | --- |
-| `GET /` | dashboard |
-| `GET /api/distance` | `{"distance_mm": 374, "distance_cm": 37.4, "timestamp": …}` |
-
-Se a leitura falhar, o servidor continua no ar e responde com erro: **503** `timeout` (sensor sem eco), **503** `device_missing` (`/dev/hcsr04` inexistente) ou **502** `invalid_value`.
-
-### Frontend
-
-O `dashboard.js` consulta `/api/distance` a cada ~500 ms e atualiza o número, em cm, e uma barra de proximidade **sem recarregar a página**. A próxima consulta só começa quando a anterior termina, então os pedidos não se acumulam se o sensor demorar. A página não usa nenhum recurso externo e funciona no navegador do celular e do notebook.
-
-Detalhes em [docs/docker-web.md](docs/docker-web.md).
+| `GET /` | painel: jogo na TV e botões dos jogos |
+| `GET /api/jogos` | lista de jogos |
+| `GET /api/status` | o que está na TV agora |
+| `POST /api/jogar/<id>` | abre o jogo na TV |
+| `POST /api/parar` | fecha o jogo e volta ao menu |
+| `GET /api/distance` | distância do HC-SR04 (TP9), se o sensor estiver ligado |
 
 ---
 
@@ -278,73 +195,52 @@ Detalhes em [docs/docker-web.md](docs/docker-web.md).
 ```
 Boot
  ↓
-Kernel + Device Tree (com o overlay hcsr04)
+S10udevd        → dispositivos de entrada (teclado, mouse, controle)
  ↓
-S30hcsr04        → modprobe hcsr04 e espera /dev/hcsr04 existir
+S30hcsr04       → driver do sensor (TP9)
  ↓
-S40wifi-ap       → espera a wlan0, IP 192.168.50.1, hostapd, dnsmasq
+S40wifi-ap      → rede TP9-GRUPO01 em 192.168.50.1
  ↓
-S60dockerd       → Docker Engine
+S50pulseaudio   → áudio dos jogos
  ↓
-S99tp9-distance  → espera /dev/hcsr04 e "docker info", docker load (se preciso), docker run
+S60dockerd      → Docker Engine
  ↓
-Dashboard em http://192.168.50.1
+S95ccs-menu     → xinit + ccs-sessao: ccs-wm e ccs-menu no vt2 (reabre se cair)
+ ↓
+S99ccs-console  → docker load (se preciso) e docker run do painel
 ```
 
-Os scripts esperam **condições reais**, como o `/dev/hcsr04` existir, a `wlan0` aparecer ou o `docker info` responder, e não pausas fixas. Cada espera tem um limite e, se ele estourar, o script imprime o motivo no console.
+O terminal continua no vt1: **Ctrl+Alt+F1** mostra o login e **Ctrl+Alt+F2** volta ao menu. Usuário `root`, senha `CCS1234`.
 
 ---
 
 ## Procedimento de compilação
 
-### Máquina de build
-
-VM no VirtualBox com **Ubuntu Server 26.04.1 LTS** (x86_64), 8 GB de RAM, 6 CPUs e 80 GB de disco.
-
-```bash
-sudo apt update
-sudo apt install -y build-essential git wget cpio unzip rsync bc file python3 libncurses-dev patch bzip2
-```
-
-No Ubuntu 26.04, o `install` padrão vem do uutils e é recusado pelo Buildroot. É preciso usar o do GNU coreutils:
-
-```bash
-sudo update-alternatives --install /usr/bin/install install /usr/bin/gnuinstall 100   # se /usr/bin/gnuinstall existir
-sudo apt install -y coreutils-from-gnu --allow-remove-essential                       # caso contrário
-install --version | head -1                                                           # deve mostrar "GNU coreutils"
-```
-
-Docker com emulação ARM, para gerar a imagem da aplicação para a Raspberry:
-
-```bash
-sudo apt install -y docker.io
-sudo usermod -aG docker $USER
-newgrp docker
-```
-
-### Build
+Máquina de build: VM no VirtualBox com Ubuntu Server 26.04.1 LTS (x86_64), a mesma do TP9 (preparação em [docs/tp9.md](docs/tp9.md#procedimento-de-compilação)). Os jogos ficam em `~/j/entrega_nino.zip`.
 
 ```bash
 git clone https://github.com/bruno-gc/sistemas_embarcados2026.git
 cd sistemas_embarcados2026
-./scripts/build.sh
+git checkout console-final
+./scripts/build-console.sh
 ```
 
-O `build.sh`:
+O `build-console.sh`:
 
-1. registra o emulador ARM (`tonistiigi/binfmt`), que se perde a cada reboot da máquina de build;
-2. gera a imagem Docker `tp9-distance:1.0` para `linux/arm64` e a exporta para `rootfs-overlay/opt/docker/tp9-distance.tar`;
-3. baixa o Buildroot 2026.02.3, se ainda não existir em `~/buildroot-2026.02.3`;
-4. aplica a `tp9_raspberrypi4_defconfig` com o `BR2_EXTERNAL` do projeto;
-5. compila e imprime os hashes dos artefatos.
+1. extrai os jogos (`CCS_JOGOS_DIR`, padrão `~/j/e/entrega_nino`) e mostra o tamanho de cada um;
+2. registra o emulador ARM (`tonistiigi/binfmt`);
+3. gera a imagem Docker `ccs-console:1.0` para `linux/arm64` e a exporta para o rootfs overlay;
+4. baixa o Buildroot 2026.02.3, se ainda não existir;
+5. aplica a `ccs_console_raspberrypi4_defconfig` com o `BR2_EXTERNAL` do projeto;
+6. recompila o `ccs-menu`, compila a imagem, confere com `readelf` que os drivers do X não ficaram com BIND_NOW e imprime os hashes.
 
-A imagem final fica em `~/buildroot-2026.02.3/output/images/sdcard.img`.
+A imagem final fica em `~/output-console/images/sdcard.img` (2,3 GB). O `scripts/publicar-imagem.sh` compacta e divide a imagem em partes de 360 MB para o Drive.
 
 ---
 
 ## Procedimento de gravação da imagem
 
-**Windows:** Raspberry Pi Imager → *Dispositivo:* Raspberry Pi 4 → *Sistema operacional:* **Usar personalizado** → `sdcard.img` (ou `sdcard.img.gz`) → escolher o microSD → *Gravar*. Não aplicar personalização.
+**Windows:** juntar as partes com o `JUNTAR-PARTES.bat` (gera `sdcard.img.gz`) → Raspberry Pi Imager → *Dispositivo:* Raspberry Pi 4 → *Sistema operacional:* **Usar personalizado** → `sdcard.img.gz` → escolher o microSD → *Gravar*. Não aplicar personalização.
 
 **Linux:**
 
@@ -357,25 +253,18 @@ sudo ./scripts/flash-sd.sh /dev/sdX
 
 ## Procedimento de teste
 
-Usuário: `nino` · senha: `CCS1234` (o `root` usa a mesma senha).
-
 | # | Onde | Comando ou ação | Esperado |
 | --- | --- | --- | --- |
-| 1 | Raspberry | ligar com o HC-SR04 conectado | boot, mensagem de boas-vindas e login |
-| 2 | Raspberry | `lsmod \| grep hcsr04` | módulo carregado |
-| 3 | Raspberry | `ls -l /dev/hcsr04` | dispositivo de caractere, somente leitura |
-| 4 | Raspberry | `cat /dev/hcsr04` | distância em mm |
-| 5 | Raspberry | `ip addr show wlan0` | `inet 192.168.50.1/24` |
-| 6 | Cliente | conectar em `TP9-GRUPO01` | recebe IP `192.168.50.x` |
-| 7 | Raspberry | `docker ps` / `docker inspect tp9-distance` | container ativo, `0.0.0.0:80->5000/tcp` e `/dev/hcsr04` em `Devices` |
-| 8 | Cliente | `http://192.168.50.1/api/distance` | JSON com `distance_mm` e `distance_cm` |
-| 9 | Cliente | `http://192.168.50.1` | dashboard atualizando sozinho |
-| 10 | Sensor | aproximar e afastar um objeto | a distância muda no dashboard |
-| 11 | Raspberry | `reboot` e repetir 6, 8 e 9 sem comandos | tudo volta sozinho |
-
-De um equipamento conectado à rede, também é possível rodar `./scripts/test.sh`.
-
-Resultados obtidos em [docs/testes.md](docs/testes.md); capturas em [evidence/](evidence/).
+| 1 | Raspberry | ligar com HDMI, teclado e controle | menu do CCS na TV |
+| 2 | Menu | setas e **C** | escolhe o jogo e mostra os controles |
+| 3 | Menu | Enter num jogo | tela "Abrindo…" e jogo em tela cheia |
+| 4 | Jogo | segurar **Home** por 1 s | volta ao menu |
+| 5 | Raspberry | Ctrl+Alt+F1, login `root` | terminal (Ctrl+Alt+F2 volta ao menu) |
+| 6 | Raspberry | `docker ps` | `ccs-console` ativo, `0.0.0.0:80->5000/tcp` |
+| 7 | Raspberry | `cat /run/ccs/status` | estado do menu em JSON |
+| 8 | Cliente | conectar em `TP9-GRUPO01` e abrir `http://192.168.50.1` | painel com o jogo atual |
+| 9 | Cliente | botão de um jogo / **Encerrar jogo** | o jogo abre e fecha na TV |
+| 10 | Raspberry | `reboot` | menu e painel voltam sozinhos |
 
 ---
 
@@ -383,25 +272,28 @@ Resultados obtidos em [docs/testes.md](docs/testes.md); capturas em [evidence/](
 
 | Problema | Solução |
 | --- | --- |
-| O relógio da VM de build ficou **8 dias atrasado** depois de ela ser restaurada de um estado salvo. Os commits `a68ca9c`, `d9b48ee`, `deb56e7`, `2107c32` e `6b7fb4b` foram feitos em **06/11/2026**, mas aparecem com data de 28/10/2026 | Relógio corrigido (`date` e `chrony`). **Não reescrevemos o histórico**: isso alteraria os commits dos colegas feitos depois. Registramos aqui a data real |
-| No Ubuntu 26.04 não existe o `systemd-timesyncd` | A sincronização de horário é feita pelo `chrony` |
-| Ao trocar o `config.txt` no menuconfig, o pacote `rpi-firmware`, já compilado, não foi reinstalado, e o `dtoverlay=hcsr04` não entrou na imagem | `make rpi-firmware-reinstall` seguido de `make` |
-| O build do TP8 deixou na pasta de saída o script `S99docker-flask` e o `flask-tp8.tar` | Removidos de `output/target`; um build a partir de um clone novo não os teria |
-| Os pacotes `dnsmasq` e `hostapd` instalam scripts de init próprios, que subiriam os serviços antes de a `wlan0` ter IP | O `post-build.sh` remove esses scripts, e o `S40wifi-ap` controla a ordem |
-| O `.dts` usa `GPIO_ACTIVE_HIGH`, que vem de um header do kernel | O pacote passa o `.dts` pelo pré-processador C com os headers do kernel da imagem antes do `dtc` |
-| O emulador ARM da máquina de build some a cada reboot, e o container arm64 encerrava ao ser testado na VM | O `build.sh` registra o emulador no início de cada build |
-| O `hostapd.conf` e o `dnsmasq.conf` foram enviados para a raiz do repositório | Movidos com `git mv` para `br2-external-tp9/board/rpi4/`, mantendo a autoria |
-| O Ubuntu 26.04 usa o `install` do uutils, recusado pelo Buildroot | Substituído pelo do GNU coreutils |
+| X com "no screens found": na Pi 4 o `card0` é o v3d (só renderiza) e a HDMI é o `card1` (vc4) | `99-vc4.conf` marca o vc4 como GPU principal (`PrimaryGPU`) |
+| Drivers do X falhando com "undefined symbol": o Buildroot linka com RELRO completo (`-z now`) | `xorg-lazy.mk` compila os pacotes do X com `-Wl,-z,lazy`; o build confere com `readelf` |
+| Cada jogo abria de um tamanho (cortado, pequeno ou em janela) | `ccs-wm` põe toda janela em tela cheia; `ccs-resolucao` muda a resolução por jogo (Crash em 640x480) |
+| Teclas diferentes em cada jogo (no Crash, o Z confirmava) e nenhuma lista na tela | padrão de PC (WASD, Espaço, E, Shift, Esc) por arquivo de config ou `xmodmap`; lista de controles no menu e na tela "Abrindo…" |
+| Sem um jeito comum de sair dos jogos | `ccs-wm` captura **Home** segurado 1 s e pede ao menu para fechar o jogo |
+| Janelas do SDL tratadas como diálogos pelo `ccs-wm` | leitura direta da propriedade `WM_TRANSIENT_FOR` em vez de `XGetTransientForHint` |
+| CS não abria: faltavam `libbz2.so.1.0`, `libogg` e `libvorbis` | pacotes `bzip2`, `libogg` e `libvorbis` no defconfig |
+| CS com imagem embaralhada no renderizador `gles2` (`GL_INVALID_ENUM`) | `start.sh` usa o renderizador `gl` (OpenGL pela Mesa V3D) |
+| Zelda: "Extractor assets not found", porque procurava o `oot.o2r` fora da pasta do jogo | `start.sh` exporta `SHIP_HOME=/opt/jogos/zelda` |
+| O firmware do Wi-Fi não estava na imagem do TP9 | pacote `brcmfmac_sdio-firmware-rpi` |
+| A VM de build travava durante builds longos e derrubava a sessão | build em segundo plano com `nohup` e log em arquivo |
 
 ---
 
 ## Limitações conhecidas
 
-- A medição usa a velocidade do som fixa em 343 m/s, sem compensar a temperatura. A precisão absoluta não é o foco do TP.
-- A aplicação usa HTTP sem criptografia e o servidor de desenvolvimento do Flask.
-- As senhas do usuário e do Wi-Fi estão em texto puro no repositório, o que é aceitável para um trabalho acadêmico, mas não para um produto.
-- O primeiro boot é mais lento, porque o `docker load` importa a imagem da aplicação.
-- Uma variante com jogos (tema do TP8) foi planejada como extra, fora desta entrega. Os arquivos dos jogos são protegidos por direitos autorais e não fazem parte do repositório.
+- Os jogos não estão no repositório, por direitos autorais. Sem o `entrega_nino.zip`, a imagem é gerada, mas os jogos não abrem.
+- O Zelda depende do `oot.o2r`, gerado a partir de uma ROM própria.
+- O CS foi feito para teclado e mouse; no controle o suporte é parcial. O DOOM usa o teclado por padrão.
+- A imagem não tem Bluetooth: o controle de PS5 precisa de cabo USB-C.
+- O terminal (tty) usa layout americano; o X usa ABNT2.
+- O painel usa HTTP sem criptografia e o servidor de desenvolvimento do Flask. As senhas estão em texto puro no repositório, aceitável num trabalho acadêmico, mas não num produto.
 
 ---
 
@@ -409,12 +301,10 @@ Resultados obtidos em [docs/testes.md](docs/testes.md); capturas em [evidence/](
 
 | Artefato | SHA-256 |
 | --- | --- |
-| `sdcard.img` | `8bdbf842d200ea2b4afc12699e790b566ab6dc0a00d766d04be0a74f62be39d3` |
-| `hcsr04.dtbo` | `80262ae5ff0f0afd6a5d8efb8be0d774933d26787ddb667922a92e94bd7971a2` |
-| `tp9-distance.tar` | `39e70825f8d389049c96754a8bfbc816b96b435a8f96db8f2a249fc7ad09f4a8` |
-| `hcsr04.ko` | `989787b658c0a5ade6ffe6901ab929f9fa2024d6a14afd5c17dded0f8c979814`  |
+| `sdcard.img` | `77ff363c2c63355bc2205168d0da42a9eb81bc5fca5db1bf97409f3de4d8099e` |
+| `sdcard.img.gz` | `6f6d082a4bc7bfe6ca626687da51b5f307c6751dbbfc1ae3d9e382ac35c50398` |
 
-Os hashes correspondem à imagem gerada na versão marcada pela tag `tp9-final`. Um novo build gera hashes diferentes, porque a imagem inclui datas de criação dos arquivos.
+Imagem gerada no commit `a9dd78b` (25/11/2026), publicada no Drive do grupo em 4 partes. Os commits seguintes até a tag `ccs-final` só mudam documentação. Um novo build gera hashes diferentes, porque a imagem inclui datas de criação dos arquivos.
 
 ---
 
@@ -423,11 +313,11 @@ Os hashes correspondem à imagem gerada na versão marcada pela tag `tp9-final`.
 | Item | Valor |
 | --- | --- |
 | Repositório | https://github.com/bruno-gc/sistemas_embarcados2026 |
-| Branch principal | `main` |
-| Tag | `tp9-final` |
-| Commit final | informado no PDF de entrega (commit apontado pela tag `tp9-final`) |
+| Branch | `console-final` |
+| Tag | `ccs-final` |
 | Buildroot | 2026.02.3 |
+| Defconfig | `ccs_console_raspberrypi4_defconfig` |
 | SSID | `TP9-GRUPO01` |
 | URL | `http://192.168.50.1` |
 
-A entrega anterior, o TP8, continua disponível na tag `tp8-final`.
+Documentação detalhada do console em [docs/console.md](docs/console.md). As entregas anteriores continuam disponíveis: TP8 na tag `tp8-final` e TP9 em [docs/tp9.md](docs/tp9.md).
