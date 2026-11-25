@@ -1,0 +1,13 @@
+#!/bin/sh
+# ccs-preparar <id> [resolucao] - roda antes de abrir um jogo (o menu chama).
+#  - resolucao (campo 9 do jogos.conf): a TV muda para ela;
+#  - /etc/ccs/teclas/<id>.xmodmap: troca de teclas so para esse jogo.
+# O ccs-restaurar desfaz tudo quando o jogo fecha.
+ID="$1"
+RES="$2"
+[ -n "$RES" ] && ccs-resolucao "$RES"
+if [ -f "/etc/ccs/teclas/$ID.xmodmap" ]; then
+	xmodmap -pke >/run/ccs/teclas.orig 2>/dev/null
+	xmodmap "/etc/ccs/teclas/$ID.xmodmap"
+fi
+exit 0

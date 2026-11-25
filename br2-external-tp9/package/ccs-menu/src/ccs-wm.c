@@ -8,6 +8,9 @@
  * tela inteira, sem borda, e recebe o foco do teclado. Quando a resolucao
  * muda (xrandr, ver ccs-resolucao), as janelas acompanham.
  *
+ * Atalho de teclado: segurar Home por 1 s pede ao menu para encerrar o jogo
+ * (o mesmo pedido "parar" que o painel web manda), para quem joga sem controle.
+ *
  * Excecoes, centralizadas no tamanho que pedirem:
  *  - janelas "transient" (dialogos);
  *  - janelas de tamanho fixo (min == max) que nao pediram tela cheia, como
@@ -18,13 +21,16 @@
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/XKBlib.h>
 #include <X11/extensions/Xrandr.h>
+#include <X11/keysym.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define MAX_CLIENTES 64
+#define PEDIDO "/run/ccs/pedido"
 
 static Display *d;
 static Window raiz, marca;
@@ -248,6 +254,31 @@ static void anunciar(void)
 			(unsigned char *)sup, sizeof sup / sizeof sup[0]);
 }
 
+static KeyCode tecla_sair;
+static Time sair_desde;
+
+static void prender_tecla_sair(void)
+{
+	tecla_sair = XKeysymToKeycode(d, XK_Home);
+	if (!tecla_sair)
+		return;
+	/* qualquer combinacao de NumLock/CapsLock */
+	unsigned int mods[] = { 0, LockMask, Mod2Mask, LockMask | Mod2Mask };
+	for (unsigned i = 0; i < sizeof mods / sizeof mods[0]; i++)
+		XGrabKey(d, tecla_sair, mods[i], raiz, True, GrabModeAsync, GrabModeAsync);
+	Bool ok;
+	XkbSetDetectableAutoRepeat(d, True, &ok); /* segurar nao gera soltar/apertar */
+}
+
+static void pedir_parar(void)
+{
+	FILE *f = fopen(PEDIDO, "w");
+	if (f) {
+		fputs("parar\n", f);
+		fclose(f);
+	}
+}
+
 int main(void)
 {
 	signal(SIGCHLD, SIG_IGN);
@@ -275,6 +306,7 @@ int main(void)
 		evento_randr = -1;
 	ler_tamanho_tela();
 	anunciar();
+	prender_tecla_sair();
 	XSync(d, False);
 
 	for (;;) {
@@ -289,6 +321,17 @@ int main(void)
 				esquecer(e.xunmap.window);
 			break;
 		case DestroyNotify: esquecer(e.xdestroywindow.window); break;
+		case KeyPress:
+			if (e.xkey.keycode == tecla_sair && !sair_desde)
+				sair_desde = e.xkey.time ? e.xkey.time : 1;
+			break;
+		case KeyRelease:
+			if (e.xkey.keycode == tecla_sair && sair_desde) {
+				if (e.xkey.time - sair_desde >= 1000)
+					pedir_parar();
+				sair_desde = 0;
+			}
+			break;
 		default:
 			if (evento_randr >= 0 && e.type == evento_randr + RRScreenChangeNotify)
 				ao_mudar_resolucao(&e);

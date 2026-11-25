@@ -1,0 +1,22 @@
+! Crash Bandicoot (PCSX-ReARMed, SDL 1.2). O emulador le o "keysym" da
+! tecla, entao o ccs-preparar troca as teclas do padrao de PC pelas que o
+! PCSX espera, so enquanto o jogo roda (o ccs-restaurar desfaz).
+! Padrao do PCSX: setas = direcional, z = X, s = Quadrado, x = Bola,
+! d = Triangulo, v = Start, c = Select, Esc = menu do emulador.
+! W A S D -> direcional
+keycode 25 = Up
+keycode 38 = Left
+keycode 39 = Down
+keycode 40 = Right
+! Espaco -> X (pular / confirmar)
+keycode 65 = z
+! E -> Quadrado (girar)
+keycode 26 = s
+! Q -> Bola (deslizar)
+keycode 24 = x
+! Tab -> Triangulo (status)
+keycode 23 = d
+! Enter -> Start (pausa)
+keycode 36 = v
+! Backspace -> Select
+keycode 22 = c

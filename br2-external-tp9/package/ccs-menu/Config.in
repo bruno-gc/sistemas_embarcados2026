@@ -12,6 +12,7 @@ config BR2_PACKAGE_CCS_MENU
 	select BR2_PACKAGE_XLIB_LIBX11 # ccs-wm
 	select BR2_PACKAGE_XLIB_LIBXRANDR # ccs-wm
 	select BR2_PACKAGE_XAPP_XRANDR # ccs-resolucao
+	select BR2_PACKAGE_XAPP_XMODMAP # ccs-preparar (teclas por jogo)
 	help
 	  Menu grafico do CCS (Console Contra Sony): mostra os jogos
 	  de /etc/ccs/jogos.conf na HDMI e abre o escolhido. Aceita

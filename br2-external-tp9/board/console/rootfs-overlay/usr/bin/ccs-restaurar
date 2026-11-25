@@ -1,0 +1,8 @@
+#!/bin/sh
+# ccs-restaurar - desfaz o ccs-preparar: resolucao nativa e teclas normais.
+if [ -f /run/ccs/teclas.orig ]; then
+	xmodmap /run/ccs/teclas.orig
+	rm -f /run/ccs/teclas.orig
+fi
+ccs-resolucao
+exit 0

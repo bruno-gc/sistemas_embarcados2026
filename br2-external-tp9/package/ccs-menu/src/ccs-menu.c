@@ -643,7 +643,7 @@ static void desenhar_rodape(void)
 	x += dica(x, y, "Enter", NULL, "Jogar") + px(40);
 	x += dica(x, y, "C", NULL, "Controles") + px(40);
 	x += dica(x, y, "Esc", NULL, "Terminal") + px(40);
-	texto(F_DICA, "No jogo: Create + Options (2 s) volta ao menu", x, y + (altura(F_CHIP) + px(8) - altura(F_DICA)) / 2, FRACO, 160, 0);
+	texto(F_DICA, "No jogo: segure Home para voltar", x, y + (altura(F_CHIP) + px(8) - altura(F_DICA)) / 2, FRACO, 160, 0);
 
 	char ip[64], linha[160];
 	endereco_ip(ip, sizeof ip);
@@ -772,7 +772,7 @@ static void tela_carregando(Jogo *j)
 		texto(F_META, "CONTROLES", px0, py, j->cor, 255, 0);
 		py += altura(F_META) + px(22);
 		py += lista_controles(j, px0, py, pw) + px(30);
-		texto(F_DICA, "No jogo: Create + Options (2 s) no controle volta ao menu", px0, py, FRACO, 255, 0);
+		texto(F_DICA, "Voltar ao menu: segure Home (1 s) no teclado ou Create + Options (2 s) no controle", px0, py, FRACO, 255, 0);
 
 		int bw = px(520), bx = px0, by = y + h - px(8);
 		nove(tx_painel, bx, by, bw, px(8), px(4), BRANCO, 40);
@@ -994,12 +994,11 @@ static void jogar(int i)
 	fechar_janela();
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 
-	if (j->resolucao[0]) {
-		char cmd[96];
-		snprintf(cmd, sizeof cmd, "/usr/bin/ccs-resolucao %s", j->resolucao);
-		if (system(cmd) != 0)
-			fprintf(stderr, "ccs-menu: nao mudou a resolucao para %s\n", j->resolucao);
-	}
+	/* resolucao da TV e teclas proprias do jogo (ver ccs-preparar) */
+	char cmd[128];
+	snprintf(cmd, sizeof cmd, "/usr/bin/ccs-preparar '%s' '%s'", j->id, j->resolucao);
+	if (system(cmd) != 0)
+		fprintf(stderr, "ccs-menu: ccs-preparar %s falhou\n", j->id);
 
 	escrever_status("jogando", j);
 	pid_t pid = fork();
@@ -1037,8 +1036,8 @@ static void jogar(int i)
 		}
 	}
 	escrever_status("menu", NULL);
-	if (j->resolucao[0] && system("/usr/bin/ccs-resolucao") != 0)
-		fprintf(stderr, "ccs-menu: nao voltou a resolucao\n");
+	if (system("/usr/bin/ccs-restaurar") != 0)
+		fprintf(stderr, "ccs-menu: ccs-restaurar falhou\n");
 
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
 	if (abrir_janela() != 0) {
