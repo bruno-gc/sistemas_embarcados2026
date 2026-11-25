@@ -27,4 +27,4 @@ fi
 chmod +x "$TARGET_DIR"/usr/bin/jogar-* "$TARGET_DIR/usr/bin/ccs-jogar" \
 	"$TARGET_DIR/usr/bin/ccs-sessao" "$TARGET_DIR/usr/bin/ccs-resolucao" \
 	"$TARGET_DIR/usr/bin/ccs-preparar" "$TARGET_DIR/usr/bin/ccs-restaurar" \
-	"$TARGET_DIR/opt/jogos/cs16/start.sh"
+	"$TARGET_DIR/opt/jogos/cs16/start.sh" "$TARGET_DIR/opt/jogos/zelda/start.sh"
