@@ -137,12 +137,12 @@ cat /var/log/ccs-menu.log           # erros do X e do menu
 
 ## Imagem publicada (25/11/2026)
 
-Commit `6a8b1e4` da branch `console-final`. A imagem está dividida em 4 partes de até 360 MB na pasta do Drive do grupo. No Windows, o `JUNTAR-PARTES.bat` junta as partes em `sdcard.img.gz`.
+Commit `a9dd78b` da branch `console-final` (inclui o conserto do CS: renderizador `gl`, bzip2/libogg/libvorbis; e o `SHIP_HOME` do Zelda). A imagem está dividida em 4 partes de até 360 MB na pasta do Drive do grupo. No Windows, o `JUNTAR-PARTES.bat` junta as partes em `sdcard.img.gz`.
 
 | Arquivo | SHA-256 |
 | --- | --- |
-| `sdcard.img.gz` | `fcaa05012b6e867bb85dc32088db86a4b7a98127218ac0e4d0945167dc90787e` |
-| `sdcard.img` | `53ae765a9312ce2b6816154f159fa98aeb79de238507bf89d9098a1a29d70f5e` |
+| `sdcard.img.gz` | `6f6d082a4bc7bfe6ca626687da51b5f307c6751dbbfc1ae3d9e382ac35c50398` |
+| `sdcard.img` | `77ff363c2c63355bc2205168d0da42a9eb81bc5fca5db1bf97409f3de4d8099e` |
 
 ## Tela cheia, resolução e teclas
 
