@@ -135,11 +135,20 @@ cat /var/log/ccs-menu.log           # erros do X e do menu
   2. O Buildroot linka tudo com RELRO completo (`-z now`), e os drivers do X (`modesetting`, `fbdev`) falhavam com "undefined symbol". O `br2-external-tp9/xorg-lazy.mk` adiciona `-Wl,-z,lazy` aos pacotes do X. O `build-console.sh` confere com `readelf` que os drivers não ficaram com BIND_NOW.
 - **Teclado**: o X usa o layout ABNT2 (`00-teclado-abnt2.conf`). O terminal (tty) continua em layout americano.
 
-## Imagem publicada (19/11/2026)
+## Imagem publicada (24/11/2026)
 
-Commit `7aa40d0` da branch `console-final`. A imagem está dividida em 4 partes de até 360 MB na pasta do Drive do grupo. No Windows, o `JUNTAR-PARTES.bat` junta as partes em `sdcard.img.gz`.
+Commit `1ad6f07` da branch `console-final`. A imagem está dividida em 4 partes de até 360 MB na pasta do Drive do grupo. No Windows, o `JUNTAR-PARTES.bat` junta as partes em `sdcard.img.gz`.
 
 | Arquivo | SHA-256 |
 | --- | --- |
-| `sdcard.img.gz` | `7722ae6aab8ce5d9c64cd042d618f35e097c4dcf693e558bb6fca5b605f504b0` |
-| `sdcard.img` | `7c8f76890c89752e7dcce5a1366645e78c359b2928c511c7067cade85611e7a8` |
+| `sdcard.img.gz` | `7444fb703111b43d6220c4273808fc9bf7538b9b58ad96bbc3c9906b05a2f0ec` |
+| `sdcard.img` | `ece590a4887ed4156584f85cfe387c9eae6de28ad214c3151898a55d07eaf432` |
+
+## Tela cheia, resolução e teclas
+
+- `ccs-wm` (gerenciador de janelas do console): todo jogo ocupa a tela e recebe o teclado. Segurar **Home** por 1 s volta ao menu.
+- `jogos.conf`, campo 9: resolução da TV durante o jogo (o Crash roda em 640x480 e o monitor amplia).
+- `ccs-preparar` / `ccs-restaurar`: aplicam e desfazem a resolução e a troca de teclas por jogo (`/etc/ccs/teclas/<id>.xmodmap`).
+- Teclas no padrão de PC: configs do DOOM (`/root/.local/share/chocolate-doom`), Quake (`id1/autoexec.cfg`) e Mario 64 (`sm64config.txt`); o Crash usa a troca por xmodmap.
+- `controles.conf`: lista mostrada no menu (tecla C / Triângulo) e na tela "Abrindo…".
+- CS: o `start.sh` grava `/opt/jogos/cs16/engine.log` (`-log -dev 2`).
