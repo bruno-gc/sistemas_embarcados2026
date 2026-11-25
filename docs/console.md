@@ -151,4 +151,4 @@ Commit `6a8b1e4` da branch `console-final`. A imagem está dividida em 4 partes 
 - `ccs-preparar` / `ccs-restaurar`: aplicam e desfazem a resolução e a troca de teclas por jogo (`/etc/ccs/teclas/<id>.xmodmap`).
 - Teclas no padrão de PC: configs do DOOM (`/root/.local/share/chocolate-doom`), Quake (`id1/autoexec.cfg`) e Mario 64 (`sm64config.txt`); o Crash usa a troca por xmodmap.
 - `controles.conf`: lista mostrada no menu (tecla C / Triângulo) e na tela "Abrindo…".
-- CS: o `start.sh` usa o renderizador `gles2` (para voltar ao OpenGL de PC: `echo gl > /etc/ccs/cs-ref`) e grava `/opt/jogos/cs16/engine.log` (`-log -dev 2`).
+- CS: o `start.sh` usa o renderizador `gl` (o `gles2` desenhava a imagem embaralhada na Pi 4; para testar: `echo gles2 > /etc/ccs/cs-ref`) e grava `/opt/jogos/cs16/engine.log` (`-log`). As bibliotecas libbz2, libogg e libvorbis vêm dos pacotes `bzip2`, `libogg` e `libvorbis` do defconfig.
