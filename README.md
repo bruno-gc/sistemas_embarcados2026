@@ -16,7 +16,7 @@ Tudo sobe sozinho no boot, sem nenhum comando manual e sem depender de Internet.
 | Professor | Sergio Schina |
 | Versão do Buildroot | **2026.02.3** |
 | Hardware | Raspberry Pi 4 Model B, TV ou monitor HDMI, teclado e mouse USB, controle de PS5 (cabo USB-C), microSD de 8 GB ou mais |
-| Hostname | `ccs-console` |
+| Hostname | `CSS-console` (como está na defconfig) |
 | SSID | `TP9-GRUPO01` (senha `embarcados2026`) |
 | URL do painel | `http://192.168.50.1` |
 | Branch | `console-final` |
