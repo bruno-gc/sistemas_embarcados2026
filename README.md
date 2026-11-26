@@ -234,7 +234,7 @@ O `build-console.sh`:
 5. aplica a `ccs_console_raspberrypi4_defconfig` com o `BR2_EXTERNAL` do projeto;
 6. recompila o `ccs-menu`, compila a imagem, confere com `readelf` que os drivers do X não ficaram com BIND_NOW e imprime os hashes.
 
-A imagem final fica em `~/output-console/images/sdcard.img` (2,3 GB). O `scripts/publicar-imagem.sh` compacta e divide a imagem em partes de 360 MB para o Drive.
+A imagem final fica em `~/output-console/images/sdcard.img` (≈ 5 GB; 1,4 GB compactada). O `scripts/publicar-imagem.sh` compacta e divide a imagem em partes de 360 MB para o Drive.
 
 ---
 
@@ -320,4 +320,4 @@ Imagem gerada no commit `a9dd78b` (25/11/2026), publicada no Drive do grupo em 4
 | SSID | `TP9-GRUPO01` |
 | URL | `http://192.168.50.1` |
 
-Documentação detalhada do console em [docs/console.md](docs/console.md). As entregas anteriores continuam disponíveis: TP8 na tag `tp8-final` e TP9 em [docs/tp9.md](docs/tp9.md).
+**Manual técnico completo** (12 seções do edital): [docs/MANUAL_TECNICO.md](docs/MANUAL_TECNICO.md), também em [PDF](docs/MANUAL_TECNICO.pdf). Documentação detalhada do console em [docs/console.md](docs/console.md). As entregas anteriores continuam disponíveis: TP8 na tag `tp8-final` e TP9 em [docs/tp9.md](docs/tp9.md).
